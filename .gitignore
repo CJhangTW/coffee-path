@@ -1,0 +1,14 @@
+# Operating system and editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Python local web-server or content-validation artifacts
+__pycache__/
+*.py[cod]
+
+# Local temporary files; do not hide source HTML, JS, JSON or vendor licenses
+*.log
+*.tmp

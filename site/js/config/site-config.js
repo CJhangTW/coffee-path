@@ -1,0 +1,1 @@
+export const SITE_CONFIG = Object.freeze({brandName:'CoffeePath', repositorySlug:'coffee-path', productionOrigin:'https://coffeepath.cjhang.com', storageKey:'coffeepath.progress.v1', defaultLocale:'zh-Hant', tagline:'從三種原料，看懂咖啡的世界。'});

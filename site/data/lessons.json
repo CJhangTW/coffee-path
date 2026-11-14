@@ -1,0 +1,114 @@
+{
+  "chapters": {
+    "intro": [
+      "intro-01"
+    ],
+    "water": [
+      "water-01",
+      "water-02",
+      "water-03"
+    ]
+  },
+  "lessons": [
+    {
+      "id": "intro-01",
+      "chapterId": "intro",
+      "title": "三種原料，許多種咖啡",
+      "eyebrow": "序章 · 01",
+      "prompt": "咖啡豆、水和牛奶，可以組合出不同的咖啡。先點選三種原料，看看它們帶來的可能。",
+      "action": "確認三種原料",
+      "question": "下面哪一個是器具，而不是咖啡飲品？",
+      "options": [
+        {
+          "id": "v60",
+          "text": "V60 濾杯"
+        },
+        {
+          "id": "latte",
+          "text": "Latte 拿鐵"
+        }
+      ],
+      "challenge": {
+        "type": "action-and-choice",
+        "correctOptionIds": [
+          "v60"
+        ]
+      },
+      "wrong": "V60 是沖煮器具；Latte 則是一種咖啡飲品。",
+      "summary": "從豆、水、奶開始，我們可以用不同做法探索咖啡。",
+      "rewardDrinkIds": [],
+      "sourceIds": [
+        "hario-v60",
+        "pdg-milk"
+      ]
+    },
+    {
+      "id": "water-01",
+      "chapterId": "water",
+      "title": "一杯 Espresso 的起點",
+      "eyebrow": "水的魔法 · 01",
+      "prompt": "從咖啡粉開始，讓水通過粉床，萃取出一小杯濃縮咖啡。",
+      "action": "開始萃取",
+      "question": "Espresso 是如何得到的？",
+      "options": [
+        {
+          "id": "extract",
+          "text": "用加壓的水萃取咖啡粉"
+        },
+        {
+          "id": "dilute",
+          "text": "在牛奶裡加入水"
+        }
+      ],
+      "challenge": {
+        "type": "action-and-choice",
+        "correctOptionIds": [
+          "extract"
+        ]
+      },
+      "wrong": "Espresso 是水通過咖啡粉萃取得到的咖啡液。",
+      "summary": "這裡以 18 g 咖啡粉萃出約 36 g 咖啡液作為示例，並非唯一配方。",
+      "rewardDrinkIds": [
+        "espresso"
+      ],
+      "sourceIds": [
+        "sca-espresso"
+      ]
+    },
+    {
+      "id": "water-02",
+      "chapterId": "water",
+      "title": "加水之後，是不是另一杯咖啡？",
+      "eyebrow": "水的魔法 · 02",
+      "prompt": "Espresso 已經萃取完成。試著在杯中加入至少 80 g 水。",
+      "question": "Americano 與 Lungo 的主要製作差別是什麼？",
+      "options": [
+        {
+          "id": "after",
+          "text": "Americano 在萃取後再加水"
+        },
+        {
+          "id": "same",
+          "text": "只是杯子大小不同"
+        }
+      ],
+      "challenge": {
+        "type": "parameter-and-choice",
+        "parameter": "addedWaterG",
+        "minimum": 80,
+        "correctOptionIds": [
+          "after"
+        ]
+      },
+      "wrong": "美式的水是在萃取後加入；Lungo 則是讓水繼續通過咖啡粉床。",
+      "summary": "美式咖啡先萃取 Espresso，再加水稀釋；水量會依店家與喜好不同。",
+      "rewardDrinkIds": [
+        "americano"
+      ],
+      "sourceIds": [
+        "bh-americano",
+        "bh-lungo"
+      ]
+    }
+  ]
+}

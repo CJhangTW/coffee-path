@@ -1,0 +1,173 @@
+{
+  "items": [
+    {
+      "id": "espresso",
+      "kind": "drink",
+      "family": "espresso-black",
+      "name": {
+        "zhHant": "義式濃縮",
+        "en": "Espresso"
+      },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": [
+        "espresso"
+      ],
+      "temperatures": [
+        "hot"
+      ],
+      "intro": "以加壓方式萃取少量咖啡液。",
+      "explain": "粉量和出杯量依配方而異。",
+      "deep": "18 g 粉萃出約 36 g 咖啡液僅為示例。",
+      "relatedDrinkIds": [
+        "americano"
+      ],
+      "confidence": "provisional",
+      "sources": [
+        "sca-espresso"
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "americano",
+      "kind": "drink",
+      "family": "espresso-water",
+      "name": {
+        "zhHant": "美式咖啡",
+        "en": "Americano"
+      },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": [
+        "espresso"
+      ],
+      "temperatures": [
+        "hot",
+        "cold"
+      ],
+      "intro": "先萃取 Espresso，再加入水稀釋。",
+      "explain": "加入的水不再穿過咖啡粉床。",
+      "deep": "水量依地區與店家而異。",
+      "relatedDrinkIds": [
+        "espresso"
+      ],
+      "confidence": "provisional",
+      "sources": [
+        "bh-americano"
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "lungo",
+      "kind": "drink",
+      "family": "espresso-black",
+      "name": {
+        "zhHant": "長萃濃縮",
+        "en": "Lungo"
+      },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": [
+        "espresso"
+      ],
+      "temperatures": [
+        "hot"
+      ],
+      "intro": "以較長的萃取取得較多咖啡液。",
+      "explain": "水持續通過咖啡粉床，與萃取後再加水不同。",
+      "deep": "萃取比例只是風格參考，並非全球一致界線。",
+      "relatedDrinkIds": [
+        "espresso"
+      ],
+      "confidence": "provisional",
+      "sources": [
+        "bh-lungo"
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "latte",
+      "kind": "drink",
+      "family": "espresso-milk",
+      "name": {
+        "zhHant": "拿鐵",
+        "en": "Latte"
+      },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": [
+        "espresso"
+      ],
+      "temperatures": [
+        "hot"
+      ],
+      "intro": "Espresso 加入牛奶，常以較多牛奶呈現。",
+      "explain": "奶量與奶泡質地會隨店家與地區不同。",
+      "deep": "與其他牛奶咖啡的分類存在重疊，沒有全球唯一比例。",
+      "relatedDrinkIds": [
+        "espresso"
+      ],
+      "confidence": "provisional",
+      "sources": [
+        "pdg-milk"
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "cappuccino",
+      "kind": "drink",
+      "family": "espresso-milk",
+      "name": {
+        "zhHant": "卡布奇諾",
+        "en": "Cappuccino"
+      },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": [
+        "espresso"
+      ],
+      "temperatures": [
+        "hot"
+      ],
+      "intro": "以 Espresso、熱牛奶和奶泡組成的咖啡。",
+      "explain": "通常呈現可感受到的奶泡質地。",
+      "deep": "不同咖啡文化和店家對杯量與奶泡的做法並不相同。",
+      "relatedDrinkIds": [
+        "espresso"
+      ],
+      "confidence": "provisional",
+      "sources": [
+        "pdg-milk"
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "cortado",
+      "kind": "drink",
+      "family": "espresso-milk",
+      "name": {
+        "zhHant": "可塔朵",
+        "en": "Cortado"
+      },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": [
+        "espresso"
+      ],
+      "temperatures": [
+        "hot"
+      ],
+      "intro": "以少量牛奶調和 Espresso，保留咖啡的存在感。",
+      "explain": "常見示例的咖啡與牛奶接近等量。",
+      "deep": "各地與店家對名稱、份量和比例有不同解讀。",
+      "relatedDrinkIds": [
+        "espresso"
+      ],
+      "confidence": "provisional",
+      "sources": [
+        "pdg-cortado"
+      ],
+      "updatedAt": "2026-11-14"
+    }
+  ]
+}

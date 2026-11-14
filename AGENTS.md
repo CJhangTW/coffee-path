@@ -1,0 +1,40 @@
+# CoffeePath — Codex 開發守則（AGENTS.md）
+
+## 品牌與儲存庫（不得擅自更名）
+- 對外品牌：**CoffeePath**（大寫 C、P）。
+- GitHub Repository：`coffee-path`（kebab-case、全小寫）。
+- Cloudflare Pages Project（建議）：`coffee-path`。
+- 正式自訂子網域：`https://coffeepath.cjhang.com`（子網域無連字號）。
+- 程式請從單一 `site/js/config/site-config.js` 讀品牌設定；HTML 先載入前仍需有靜態 `<title>`／meta，兩者變動須同步測試。
+- 對外 URL 不得寫死於一般路由或資料載入；部署前以 `docs/07`、`docs/08` 檢查。
+
+## 目標
+以互動式故事關卡幫使用者理解由咖啡豆、水、牛奶形成的咖啡世界。初學者可闖關、收集、累積豆點；熟手可立即使用自由 Lab、圖鑑與研究說明。
+
+## 首要指令
+1. 先讀 `README.md` 及 `docs/01`～`docs/08`，當文件與需求不同步時先列出衝突，**不要憑空追加產品功能**。
+2. 第一階段只做 M1：前 3 關、2D 咖啡杯、兩個入口、豆點／收藏／本機進度、基本實驗室。其餘依規格分期。
+3. 不使用 React、Vue、Svelte、TypeScript transpiler、Vite、Webpack、Node runtime server、後端 API、資料庫、Cloudflare Workers、Pages Functions、遠端 AI、CDN 或任何按請求付費服務。
+4. HTML/CSS/Vanilla ES Modules + 按需載入的 Three.js 是唯一技術棧。`site/` 是完整可部署的靜態根目錄，無 build。
+5. 不依賴任何圖片、影片、外部字型、音效或 3D 模型資產；以 HTML、CSS、SVG、程序化幾何製作視覺。
+6. WebGL 出錯必須自動降為 2D；3D 不是課程通過的先決條件。
+7. 每個新功能以至少一項關卡／配方／進度測試驗證。所有規則寫在 domain 純函式；UI 不直接存取 localStorage。
+8. 咖啡名稱須嚴謹：區分 drink／alias／preparation／technique／equipment／experimental，不假裝全球有統一配方，也不能把舊列表 164 項當成 164 種獨立飲品。
+9. 程式使用清楚英文識別字、JSDoc 型別、必要註解；面向使用者的文案使用臺灣繁體中文、保留英文名稱。
+10. 不擅自部署網站、改 DNS、推送遠端儲存庫或購買服務；外部動作須先取得使用者授權。
+11. GitHub 命名、README、branch、commit、程式識別字遵循 `docs/07`；不在 repo slug 夾版本號或使用者姓名。
+
+## 程式碼變更策略
+- 小步完成、可運行、可測試；避免一次性建立大批空白 placeholder 檔案。
+- 每次改動前閱讀所涉及模組；不得複製規則到 UI 或將全部程式塞在 `main.js`。
+- 新增資料／功能先依 `docs/03` 擴充 contract，再改 domain、UI、測試。
+- 保留穩定 ID 與本機進度相容性；如改 schema，提供 migration。
+- 不用 `innerHTML` 放使用者輸入；UI 元件須支援鍵盤、焦點、可讀文字。
+- 3D 在動態引入後，需能切回 2D 並正確 dispose 幾何、材質、renderer。
+
+## 完成時回報
+1. 完成項目與需求條目。
+2. 變更檔案與核心設計決策。
+3. 測試指令、結果與未測項目。
+4. 已知問題與待審核知識。
+5. 下一個最小可交付任務；不自行擴充範圍。

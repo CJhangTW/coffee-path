@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "espresso",
+      "kind": "drink",
+      "family": "espresso-black",
+      "name": { "zhHant": "義式濃縮", "en": "Espresso" },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": ["espresso"],
+      "temperatures": ["hot"],
+      "intro": "以加壓方式萃取少量而濃郁的咖啡液。",
+      "explain": "萃取粉水比例、壓力和粉床會影響呈現，配方沒有全球唯一標準。",
+      "deep": "範例 18 g 粉萃出約 36 g 咖啡液，僅為教學起點，非世界一致規格。",
+      "ranges": { "espressoG": [20, 60], "milkG": [0, 0] },
+      "relatedDrinkIds": ["americano", "cortado"],
+      "sources": ["src-example-coffee-01"],
+      "confidence": "provisional",
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "americano",
+      "kind": "drink",
+      "family": "espresso-water",
+      "name": { "zhHant": "美式咖啡", "en": "Americano" },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": ["espresso"],
+      "temperatures": ["hot", "cold"],
+      "intro": "先萃出 Espresso，再加入熱水或冷水稀釋。",
+      "explain": "與 Lungo 不同：加入的水並沒有繼續穿過咖啡粉床。",
+      "deep": "實際水量會依地區與店家變動，不能用固定杯量認定唯一做法。",
+      "ranges": { "espressoG": [20, 60], "addedWaterG": [60, 250], "milkG": [0, 0] },
+      "relatedDrinkIds": ["espresso", "cortado"],
+      "sources": ["src-example-coffee-01"],
+      "confidence": "provisional",
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "cortado",
+      "kind": "drink",
+      "family": "espresso-milk",
+      "name": { "zhHant": "可塔朵", "en": "Cortado" },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": ["espresso"],
+      "temperatures": ["hot"],
+      "intro": "以相對少量的牛奶柔化 Espresso，保持咖啡存在感。",
+      "explain": "咖啡與奶常約等量，但沒有全球固定配方。",
+      "deep": "奶泡少、杯量偏小；與 Piccolo、Macchiato 的界線依咖啡文化不同。",
+      "ranges": { "espressoG": [25, 45], "milkG": [25, 55] },
+      "relatedDrinkIds": ["espresso", "americano"],
+      "sources": ["src-example-coffee-01"],
+      "confidence": "provisional",
+      "updatedAt": "2026-11-14"
+    }
+  ]
+}

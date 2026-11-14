@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "src-example-coffee-01",
+      "title": "示例占位來源，發布前須以針對飲品的有效參考資料取代",
+      "url": "",
+      "status": "placeholder",
+      "notes": "僅用於 schema 和開發測試，不可當作飲品內容已通過審查的證據。"
+    }
+  ]
+}

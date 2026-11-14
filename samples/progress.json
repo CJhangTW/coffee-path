@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "completedLessonIds": ["intro-01", "water-01"],
+  "awardedAchievementIds": ["chapter-intro"],
+  "collectedDrinkIds": ["espresso"],
+  "preferences": {
+    "expertBypass": false,
+    "unlockAllKnowledge": false,
+    "visualMode": "auto",
+    "reducedMotion": false
+  },
+  "lastRoute": "#/journey/water-02"
+}
