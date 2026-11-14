@@ -4,14 +4,24 @@ import {validateWater} from '../domain/recipe.js';
 const order=['intro-01','water-01','water-02'];
 export function journey(lesson, progress, onComplete, sources=[]) {
   const index=order.indexOf(lesson.id), interaction={completed:false,addedWaterG:0}; let answer='',passed=false;
-  const feedback=el('div',{'aria-live':'polite'}), visualText=el('p',{},lesson.id==='intro-01'?'咖啡豆 × 水 × 牛奶':'尚未開始操作');
+  const feedback=el('div',{'aria-live':'polite'}), visualText=el('p',{'aria-live':'polite'},lesson.id==='intro-01'?'咖啡豆 × 水 × 牛奶':'尚未開始操作');
   const fallback=el('div',{class:'scene-fallback'},cup(0,lesson.id==='water-01'));
   const frame=el('div',{class:'scene-frame','data-scene':lesson.id==='intro-01'?'world':'cup','data-empty':lesson.id==='water-01'},fallback);
   const visual=el('div',{class:'visual-panel panel'},frame,visualText,el('small',{class:'muted'},'杯中顏色與比例僅為示意。'));
   const controls=el('div',{class:'control'});
   if(lesson.id==='intro-01') {
     const selected=new Set();const ingredients=el('div',{class:'ingredient-list'});
-    for(const name of ['咖啡豆','水','牛奶']) {const checkbox=el('input',{type:'checkbox',onChange:e=>{e.target.checked?selected.add(name):selected.delete(name);interaction.completed=selected.size===3;visualText.textContent=interaction.completed?'三種原料，探索不同咖啡的起點。':`已選擇 ${selected.size} / 3 種原料`;}});ingredients.append(el('label',{},checkbox,` ${name}`));} controls.append(ingredients);
+    const labels={beans:'咖啡豆',water:'水',milk:'牛奶'};
+    for(const [id,name] of Object.entries(labels)) {
+      const checkbox=el('input',{type:'checkbox',onChange:e=>{
+        e.target.checked?selected.add(id):selected.delete(id);
+        interaction.completed=selected.size===3;
+        const current=Array.from(selected).at(-1)??null;
+        frame.dispatchEvent(new CustomEvent('coffee-scene-update',{detail:{ingredient:current}}));
+        visualText.textContent=current?`已選擇 ${selected.size} / 3 種原料，目前標示：${labels[current]}。${interaction.completed?'三種原料已選齊。':''}`:'請選擇咖啡豆、水與牛奶。';
+      }});
+      ingredients.append(el('label',{},checkbox,` ${name}`));
+    } controls.append(ingredients);
   } else if(lesson.id==='water-01') {const action=el('button',{type:'button',class:'secondary',onClick:()=>{interaction.completed=true;fallback.replaceChildren(cup());frame.dispatchEvent(new CustomEvent('coffee-scene-update',{detail:{water:0,empty:false}}));visualText.textContent='示例：18 g 咖啡粉 → 約 36 g Espresso。';action.textContent='已完成示例萃取';}},lesson.action); controls.append(action);
   } else {const number=el('input',{type:'number',id:'water-number',min:'0',max:'250',step:'1',value:'0','aria-describedby':'water-help'});const range=el('input',{type:'range',id:'water-range',min:'0',max:'250',step:'1',value:'0','aria-label':'調整萃取後加入的水量'});const update=source=>{const n=source.valueAsNumber;if(!validateWater(n)){interaction.addedWaterG=NaN;visualText.textContent='請輸入 0–250 g 的水量。';return;}interaction.addedWaterG=n;number.value=String(n);range.value=String(n);fallback.replaceChildren(cup(n));frame.dispatchEvent(new CustomEvent('coffee-scene-update',{detail:{water:n}}));visualText.textContent=`Espresso 約 36 g，萃取後加水 ${n} g。`;};number.addEventListener('input',()=>update(number));range.addEventListener('input',()=>update(range));controls.append(el('label',{for:'water-number'},'萃取後加水（g）'),number,range,el('p',{id:'water-help',class:'muted'},'示例範圍 0–250 g；請至少加入 80 g。')); }
   const choices=el('div',{class:'choices'});for(const option of lesson.options){const radio=el('input',{type:'radio',name:'answer',value:option.id,onChange:()=>{answer=option.id;}});choices.append(el('label',{class:'choice'},radio,option.text));}

@@ -139,6 +139,13 @@ test('3D 執行中失敗時顯示全域設定的降級提示', async () => {
   const stop=mountScenes(root,{schedule:fn=>{fn();return 0;},loader:async()=>({createScene:(host,options,onFailure)=>{fail=onFailure;return {canvas:document.createElement('canvas'),render(){},update(){},dispose(){}};}})});
   await new Promise(resolve=>setTimeout(resolve,0));fail();assert(root.textContent.includes('3D 暫時無法使用'),'應告知已降級');assert(!root.querySelector('canvas'),'應保留 2D');stop();root.remove();
 });
+test('序章選擇與取消原料同步場景且不繞過通關', async () => {
+  const {journey}=await import('../site/js/features/journey.js');const content=await (await fetch('../site/data/lessons.json')).json();
+  let completed=0;const view=journey(content.lessons[0],{completedLessonIds:[]},()=>{completed++;return true;});document.body.append(view);
+  const frame=view.querySelector('[data-scene="world"]');let selected='unseen';frame.addEventListener('coffee-scene-update',event=>{selected=event.detail.ingredient;});
+  const boxes=view.querySelectorAll('.ingredient-list input');boxes[0].click();assert(selected==='beans',`選豆應指出咖啡豆（目前 ${selected}）`);boxes[1].click();assert(selected==='water','選水應指出水');boxes[1].click();assert(selected==='beans','取消水後回到已選的豆');boxes[0].click();assert(selected===null,'全部取消應清除標記');
+  boxes[0].click();boxes[1].click();view.querySelector('input[value="v60"]').click();view.querySelector('button.primary').click();assert(completed===0,'少選原料不得通關');boxes[2].click();view.querySelector('button.primary').click();assert(completed===1,'選擇三種原料且答對才完成');view.remove();
+});
 test('首頁展示原料、製程與飲品的關係及尚未開放的路徑', async () => {
   const {home}=await import('../site/js/features/home.js');const page=home();
   assert(page.textContent.includes('咖啡豆')&&page.textContent.includes('水')&&page.textContent.includes('牛奶'),'應指出三種原料');
