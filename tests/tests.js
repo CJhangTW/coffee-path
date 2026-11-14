@@ -101,8 +101,8 @@ test('離開頁面後遲到的 3D 載入不得掛載', async () => {
 });
 test('3D 載入期間操作會在載入後呈現，切回 2D 會清理', async () => {
   const {createSceneController}=await import('../site/js/ui/scene-controller.js');let resolve;const pending=new Promise(r=>resolve=r);let state,disposals=0;const host=document.createElement('div');const fallback=document.createElement('span');host.append(fallback);
-  const controller=createSceneController(host,fallback,()=>pending);const enabled=controller.enable();controller.update({water:120});resolve({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(value){state=value;},dispose(){disposals++;}})});await enabled;
-  assert(state.water===120,'載入期間變更不可遺失');assert(fallback.hidden,'3D 成功時隱藏 2D');controller.disable();assert(!fallback.hidden&&!host.querySelector('canvas'),'切回 2D 必須移除 3D');controller.dispose();assert(disposals===1,'僅釋放一次');
+  const controller=createSceneController(host,fallback,()=>pending);const enabled=controller.enable();controller.update({water:120});controller.update({reducedMotion:true});resolve({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(value){state=value;},dispose(){disposals++;}})});await enabled;
+  assert(state.water===120&&state.reducedMotion===true,'載入期間的水量與動態偏好不可互相覆蓋');assert(fallback.hidden,'3D 成功時隱藏 2D');controller.disable();assert(!fallback.hidden&&!host.querySelector('canvas'),'切回 2D 必須移除 3D');controller.dispose();assert(disposals===1,'僅釋放一次');
 });
 test('已啟用 3D 的更新失敗會安全降回 2D', async () => {
   const {createSceneController}=await import('../site/js/ui/scene-controller.js');let disposed=0;const host=document.createElement('div');const fallback=document.createElement('span');host.append(fallback);
@@ -114,10 +114,30 @@ test('選擇 2D 後換頁仍保留 2D', async () => {
   const createRoot=()=>{const root=document.createElement('div');root.innerHTML='<div data-scene="cup"><div class="scene-fallback"></div></div>';document.body.append(root);return root;};
   const loader=async()=>({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(){},dispose(){}})});
   const schedule=fn=>{fn();return 0;};
-  const root=createRoot();let stop=mountScenes(root,{visualMode:preference,onPreference:v=>{preference=v;},loader,schedule});
-  await new Promise(resolve=>setTimeout(resolve,0));root.querySelector('button').click();assert(preference==='2d','切換應保存偏好');stop();root.remove();
-  const next=createRoot();stop=mountScenes(next,{visualMode:preference,onPreference:v=>{preference=v;},loader,schedule});await new Promise(resolve=>setTimeout(resolve,0));
+  const root=createRoot();let stop=mountScenes(root,{visualMode:preference,loader,schedule});
+  await new Promise(resolve=>setTimeout(resolve,0));preference='2d';stop.setMode(preference);assert(!root.querySelector('canvas'),'全域變更應立即生效');stop();root.remove();
+  const next=createRoot();stop=mountScenes(next,{visualMode:preference,loader,schedule});await new Promise(resolve=>setTimeout(resolve,0));
   assert(!next.querySelector('canvas'),'換頁後不應自動啟用 3D');stop();next.remove();
+});
+test('全域顯示設定保留 3D 並可獨立關閉動態', async () => {
+  const {createDisplaySettings}=await import('../site/js/ui/display-settings.js');let changed;
+  const settings=createDisplaySettings({visualMode:'3d',reducedMotion:false},value=>{changed=value;});
+  const toggle=settings.querySelector('input[type="checkbox"]');toggle.checked=true;toggle.dispatchEvent(new Event('change'));
+  assert(changed.reducedMotion===true&&changed.visualMode==='3d','不應為關閉動態而切換 2D');
+  const select=settings.querySelector('select');select.value='2d';select.dispatchEvent(new Event('change'));
+  assert(changed.visualMode==='2d'&&changed.reducedMotion===true,'設定應分別保留');
+});
+test('首頁選擇原料以可讀文字及場景事件回應', async () => {
+  const {home}=await import('../site/js/features/home.js');const view=home();const scene=view.querySelector('[data-scene="world"]');let selected;
+  scene.addEventListener('coffee-scene-update',event=>{selected=event.detail.ingredient;});
+  const button=[...view.querySelectorAll('button')].find(node=>node.textContent.includes('水'));assert(button,'水的按鈕應存在');button.click();
+  assert(selected==='water','選擇水應通知場景');assert(view.textContent.includes('水讓咖啡粉中的物質被萃取出來'),'應有可讀說明');
+});
+test('3D 執行中失敗時顯示全域設定的降級提示', async () => {
+  const {mountScenes}=await import('../site/js/ui/mount-scenes.js');let fail;
+  const root=document.createElement('div');root.innerHTML='<div data-scene="cup"><div class="scene-fallback"></div></div>';document.body.append(root);
+  const stop=mountScenes(root,{schedule:fn=>{fn();return 0;},loader:async()=>({createScene:(host,options,onFailure)=>{fail=onFailure;return {canvas:document.createElement('canvas'),render(){},update(){},dispose(){}};}})});
+  await new Promise(resolve=>setTimeout(resolve,0));fail();assert(root.textContent.includes('3D 暫時無法使用'),'應告知已降級');assert(!root.querySelector('canvas'),'應保留 2D');stop();root.remove();
 });
 test('首頁展示原料、製程與飲品的關係及尚未開放的路徑', async () => {
   const {home}=await import('../site/js/features/home.js');const page=home();
@@ -125,16 +145,6 @@ test('首頁展示原料、製程與飲品的關係及尚未開放的路徑', as
   assert(page.textContent.includes('萃取')&&page.textContent.includes('飲品'),'應解釋原料與飲品的關係');
   assert(page.textContent.includes('手沖')&&page.textContent.includes('冷萃')&&page.textContent.includes('規劃中'),'應標明未開放路徑');
   assert(page.querySelector('a[href="#/journey/intro-01"]')&&page.querySelector('a[href="#/lab"]'),'兩個入口仍可使用');
-});
-test('細微動態只在可見且允許動畫時執行', async () => {
-  const {createAmbientMotion}=await import('../site/js/ui/ambient-motion.js');
-  const callbacks=new Map();let id=0,angle=0;const requestFrame=cb=>{callbacks.set(++id,cb);return id;};const cancelFrame=key=>callbacks.delete(key);
-  const motion=createAmbientMotion({render:value=>{angle=value;},requestFrame,cancelFrame});
-  const step=time=>{const [key,fn]=callbacks.entries().next().value;callbacks.delete(key);fn(time);};
-  motion.setVisible(true);assert(callbacks.size===1,'場景可見應啟動');step(0);step(100);assert(angle>0&&angle<0.1,'角度應小幅度變化');
-  motion.setPageVisible(false);assert(callbacks.size===0,'背景分頁應停止');motion.setPageVisible(true);assert(callbacks.size===1,'返回分頁應恢復');
-  motion.setReduced(true);assert(callbacks.size===0&&angle===0,'減少動態時停止並回到原位');motion.setReduced(false);motion.setVisible(false);assert(callbacks.size===0,'離開視窗時應停止');
-  motion.setVisible(true);motion.dispose();assert(callbacks.size===0,'移除場景應取消排程');
 });
 
 let failures=0; const lines=[];

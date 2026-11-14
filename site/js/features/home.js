@@ -1,9 +1,21 @@
 import {el,link,cup} from '../ui/dom.js';
 
 export function home() {
+  const scene=el('div',{class:'scene-frame world-scene','data-scene':'world'},
+    el('div',{class:'scene-fallback'},cup(),el('div',{class:'cup-label'},'咖啡豆 · 水 · 牛奶')));
+  const description=el('p',{class:'ingredient-description','aria-live':'polite'},'選擇一種原料，看看它在咖啡中的角色。');
+  const choices=el('div',{class:'ingredient-choices',role:'group','aria-label':'探索咖啡原料'});
+  for(const [id,name,text] of [
+    ['beans','咖啡豆','咖啡豆經烘焙與研磨後，提供萃取所需的咖啡粉。'],
+    ['water','水','水讓咖啡粉中的物質被萃取出來，也可以在萃取後加入。'],
+    ['milk','牛奶','牛奶可與咖啡結合，奶量與質地會帶來不同的飲品。']
+  ]) {
+    const button=el('button',{type:'button',class:'ingredient-choice','aria-pressed':'false'},name);
+    button.addEventListener('click',()=>{for(const sibling of choices.children)sibling.setAttribute('aria-pressed','false');button.setAttribute('aria-pressed','true');description.textContent=text;scene.dispatchEvent(new CustomEvent('coffee-scene-update',{detail:{ingredient:id}}));});
+    choices.append(button);
+  }
   const world=el('div',{class:'hero-art'},
-    el('div',{class:'scene-frame world-scene','data-scene':'world'},
-      el('div',{class:'scene-fallback'},cup(),el('div',{class:'cup-label'},'咖啡豆 · 水 · 牛奶'))));
+    scene,choices,description);
   const pathways=el('section',{class:'world-map','aria-labelledby':'world-map-title'},
     el('div',{class:'world-map-heading'},el('span',{class:'kicker'},'THE COFFEE WORLD'),
       el('h2',{id:'world-map-title'},'一張桌子，看見咖啡的關係。'),

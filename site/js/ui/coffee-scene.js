@@ -1,5 +1,4 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import {createAmbientMotion} from './ambient-motion.js';
 
 /** Create a small procedural scene; never owns application or progress state. */
 export function createScene(host, options, onFailure) {
@@ -26,34 +25,37 @@ export function createScene(host, options, onFailure) {
     const handle=new THREE.Mesh(new THREE.TorusGeometry(.31,.075,12,30,Math.PI*2),cream);handle.position.set(.62,.46,0);group.add(handle);
     return {group,liquid};
   }
-  let mainCup;
+  let mainCup,marker=null;const highlights={};
   if(options.kind==='world'){
     mainCup=makeCup(-.1,.35,1.18);makeCup(1.9,-.65,.74);const latte=makeCup(-2,-.8,.72);
     latte.liquid.material.color.set(0xd2a27e);
     const foam=new THREE.Mesh(new THREE.TorusGeometry(.26,.055,10,32),milk);foam.rotation.x=Math.PI/2;foam.position.y=.91;latte.group.add(foam);
-    const glass=mesh(new THREE.CylinderGeometry(.36,.29,1.2,32),water,1.75,.47,1.25);glass.material.transparent=true;glass.material.opacity=.8;
-    mesh(new THREE.CylinderGeometry(.34,.36,.85,32),milk,-1.8,.32,1.25);
-    const pitcherHandle=mesh(new THREE.TorusGeometry(.22,.06,10,24),cream,-1.43,.42,1.25);pitcherHandle.scale.set(.7,1,1);
-    const pitcherRim=mesh(new THREE.TorusGeometry(.33,.04,10,32),cream,-1.8,.76,1.25);pitcherRim.rotation.x=Math.PI/2;
-    for(let i=0;i<7;i++){const bean=mesh(new THREE.SphereGeometry(.16,16,12),dark,-2.8+i*.27,-.05,.65+(i%2)*.2);bean.scale.set(.7,.4,1);bean.rotation.y=i*.55;}
+    const waterMaterial=water.clone(),milkMaterial=milk.clone(),beanMaterial=dark.clone();
+    highlights.water=waterMaterial;highlights.milk=milkMaterial;highlights.beans=beanMaterial;
+    const glass=mesh(new THREE.CylinderGeometry(.36,.29,1.2,32),waterMaterial,1.75,.47,1.25);glass.material.transparent=true;glass.material.opacity=.8;
+    mesh(new THREE.CylinderGeometry(.34,.36,.85,32),milkMaterial,-1.8,.32,1.25);
+    const pitcherHandle=mesh(new THREE.TorusGeometry(.22,.06,10,24),milkMaterial,-1.43,.42,1.25);pitcherHandle.scale.set(.7,1,1);
+    const pitcherRim=mesh(new THREE.TorusGeometry(.33,.04,10,32),milkMaterial,-1.8,.76,1.25);pitcherRim.rotation.x=Math.PI/2;
+    for(let i=0;i<7;i++){const bean=mesh(new THREE.SphereGeometry(.16,16,12),beanMaterial,-2.8+i*.27,-.05,.65+(i%2)*.2);bean.scale.set(.7,.4,1);bean.rotation.y=i*.55;}
     const dripper=mesh(new THREE.CylinderGeometry(.55,.15,.75,32),green,1.9,.85,-.65);dripper.position.y=1.05;
+    marker=mesh(new THREE.TorusGeometry(.5,.045,10,40),mat(0xffe3a3),0,-.16,0);marker.rotation.x=Math.PI/2;marker.visible=false;
   } else {mainCup=makeCup(0,0,1.6);}
   mainCup.liquid.visible=!options.empty;
-  let targetWater=Number(options.water)||0,currentWater=targetWater,raf=0,disposed=false;
+  let targetWater=Number(options.water)||0,currentWater=targetWater,raf=0,disposed=false,reduceByUser=options.reducedMotion===true;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   function resize(){if(disposed)return;const width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);renderer.setSize(width,height,false);const aspect=width/height;const view=Math.max(options.kind==='world'?3.4:2.6,(tableRadius+0.4)/aspect);camera.left=-view*aspect;camera.right=view*aspect;camera.top=view;camera.bottom=-view;camera.updateProjectionMatrix();draw();}
   function draw(){if(!disposed){try{renderer.render(scene,camera);}catch{onFailure();}}}
   function tick(){if(disposed)return;currentWater+=(targetWater-currentWater)*.18;if(Math.abs(targetWater-currentWater)<.5)currentWater=targetWater;const mix=Math.min(currentWater/250,1);mainCup.liquid.material.color.set(0x63402d).lerp(new THREE.Color(0xb48b68),mix*.65);draw();if(!disposed&&currentWater!==targetWater)raf=requestAnimationFrame(tick);else raf=0;}
   const observer=new ResizeObserver(resize);observer.observe(host);
   const lost=event=>{event.preventDefault();onFailure();};canvas.addEventListener('webglcontextlost',lost);
-  let ambient=null,intersection=null;
-  const onPageVisibility=()=>ambient?.setPageVisible(!document.hidden);
-  const onMotionPreference=event=>ambient?.setReduced(event.matches);
-  if(options.kind==='world'){
-    ambient=createAmbientMotion({render:angle=>{camera.position.set(5*Math.cos(angle)+8*Math.sin(angle),6,8*Math.cos(angle)-5*Math.sin(angle));camera.lookAt(0,.2,0);draw();},requestFrame:requestAnimationFrame,cancelFrame:cancelAnimationFrame});
-    ambient.setReduced(reduced.matches);ambient.setPageVisible(!document.hidden);
-    document.addEventListener('visibilitychange',onPageVisibility);reduced.addEventListener('change',onMotionPreference);
-    if('IntersectionObserver' in window){intersection=new IntersectionObserver(entries=>ambient?.setVisible(entries.some(entry=>entry.isIntersecting)));intersection.observe(host);}else ambient.setVisible(true);
-  }
-  return {canvas,render:resize,update(state){if(state.empty!==undefined)mainCup.liquid.visible=!state.empty;targetWater=Number(state.water)||0;if(reduced.matches){currentWater=targetWater;}if(!raf)tick();},dispose(){if(disposed)return;disposed=true;if(raf)cancelAnimationFrame(raf);ambient?.dispose();intersection?.disconnect();document.removeEventListener('visibilitychange',onPageVisibility);reduced.removeEventListener('change',onMotionPreference);observer.disconnect();canvas.removeEventListener('webglcontextlost',lost);scene.traverse(object=>{object.geometry?.dispose();if(object.material){for(const material of (Array.isArray(object.material)?object.material:[object.material]))material.dispose();}});renderer.dispose();}};
+  const onSystemMotion=event=>{if(event.matches&&raf){cancelAnimationFrame(raf);raf=0;currentWater=targetWater;tick();}};
+  reduced.addEventListener('change',onSystemMotion);
+  return {canvas,render:resize,update(state){
+    if(state.empty!==undefined)mainCup.liquid.visible=!state.empty;
+    if(state.reducedMotion!==undefined)reduceByUser=state.reducedMotion===true;
+    if(state.ingredient!==undefined){for(const [id,material] of Object.entries(highlights)){material.emissive.set(id===state.ingredient?0x51432e:0x000000);material.emissiveIntensity=.75;}const positions={beans:[-2,.72],water:[1.75,1.25],milk:[-1.8,1.25]};if(marker){const position=positions[state.ingredient];marker.visible=Boolean(position);if(position)marker.position.set(position[0],-.16,position[1]);}draw();}
+    if(state.water!==undefined)targetWater=Number(state.water)||0;
+    if(reduceByUser||reduced.matches){currentWater=targetWater;if(raf){cancelAnimationFrame(raf);raf=0;}}
+    if(!raf)tick();
+  },dispose(){if(disposed)return;disposed=true;if(raf)cancelAnimationFrame(raf);observer.disconnect();reduced.removeEventListener('change',onSystemMotion);canvas.removeEventListener('webglcontextlost',lost);scene.traverse(object=>{object.geometry?.dispose();if(object.material){for(const material of (Array.isArray(object.material)?object.material:[object.material]))material.dispose();}});renderer.dispose();}};
 }

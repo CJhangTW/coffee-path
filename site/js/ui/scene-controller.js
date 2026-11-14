@@ -15,7 +15,7 @@ export function createSceneController(host, fallback, loader, options={}) {
         scene=next;host.append(scene.canvas);fallback.hidden=true;scene.render();if(scene!==next)return false;if(latest)scene.update(latest);options.onMode?.(true);return true;
       } catch {if(request===generation)disable();return false;}
     },
-    update(state){latest=state;try{scene?.update(state);}catch{disable();}},
+    update(state){latest={...latest,...state};try{scene?.update(state);}catch{disable();}},
     disable,
     dispose(){if(disposed)return;disable();disposed=true;}
   };
