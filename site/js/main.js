@@ -14,8 +14,10 @@ const brand=document.querySelector('.brand');brand.lastChild.textContent=` ${SIT
 let cleanupScenes=()=>{};
 let backend;try{backend=window.localStorage;}catch{backend={getItem(){throw Error('unavailable')},setItem(){throw Error('unavailable')}};}
 const storage=createStorage(backend);const loaded=storage.load();let progress=loaded.progress;let data;
+document.body.classList.toggle('reduce-motion',progress.preferences.reducedMotion===true);
 const displaySettings=createDisplaySettings(progress.preferences,preferences=>{
   const previous=progress.preferences;progress={...progress,preferences};
+  document.body.classList.toggle('reduce-motion',preferences.reducedMotion===true);
   if((previous.visualMode==='2d'?'2d':'3d')!==preferences.visualMode)cleanupScenes.setMode?.(preferences.visualMode);
   if(previous.reducedMotion!==preferences.reducedMotion)cleanupScenes.setReduced?.(preferences.reducedMotion);
   if(!storage.save(progress))warn();

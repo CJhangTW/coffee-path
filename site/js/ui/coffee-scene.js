@@ -1,4 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
+import {extractionFrame,pourFrame,pourTransition} from '../domain/process-frames.js';
 
 /** Create a small procedural scene; never owns application or progress state. */
 export function createScene(host, options, onFailure) {
@@ -19,7 +20,8 @@ export function createScene(host, options, onFailure) {
   function makeCup(x,z,scale=1){
     const group=new THREE.Group();group.position.set(x,0,z);group.scale.setScalar(scale);scene.add(group);
     const saucer=new THREE.Mesh(new THREE.CylinderGeometry(.88,.82,.09,40),cream);saucer.position.y=-.1;group.add(saucer);
-    const body=new THREE.Mesh(new THREE.CylinderGeometry(.63,.42,.9,40),cream);body.position.y=.42;group.add(body);
+    const bodyMaterial=cream.clone();bodyMaterial.side=THREE.DoubleSide;
+    const body=new THREE.Mesh(new THREE.CylinderGeometry(.63,.42,.9,40,1,true),bodyMaterial);body.position.y=.42;group.add(body);
     const rim=new THREE.Mesh(new THREE.TorusGeometry(.615,.045,12,40),cream);rim.rotation.x=Math.PI/2;rim.position.y=.88;group.add(rim);
     const liquid=new THREE.Mesh(new THREE.CylinderGeometry(.565,.565,.025,40),coffee.clone());liquid.position.y=.89;group.add(liquid);
     const handle=new THREE.Mesh(new THREE.TorusGeometry(.31,.075,12,30,Math.PI*2),cream);handle.position.set(.62,.46,0);group.add(handle);
@@ -40,22 +42,52 @@ export function createScene(host, options, onFailure) {
     const dripper=mesh(new THREE.CylinderGeometry(.55,.15,.75,32),green,1.9,.85,-.65);dripper.position.y=1.05;
     marker=mesh(new THREE.TorusGeometry(.5,.045,10,40),mat(0xffe3a3),0,-.16,0);marker.rotation.x=Math.PI/2;marker.visible=false;
   } else {mainCup=makeCup(0,0,1.6);}
+  let waterFlow=null,coffeeFlow=null,pourFlow=null,pitcher=null;
+  if(options.kind==='extract'){
+    const metal=mat(0x918d80),puck=mat(0x69442f),blue=mat(0x99c5c1);
+    mesh(new THREE.CylinderGeometry(.78,.72,.18,32),metal,0,2.56,0);
+    mesh(new THREE.CylinderGeometry(.64,.64,.18,32),puck,0,2.67,0);
+    mesh(new THREE.CylinderGeometry(.35,.35,.22,24),blue,0,3.62,0);
+    waterFlow=mesh(new THREE.CylinderGeometry(.075,.075,.77,16),blue,0,3.13,0);waterFlow.visible=false;
+    coffeeFlow=mesh(new THREE.CylinderGeometry(.065,.065,1.15,16),coffee,0,1.9,0);coffeeFlow.visible=false;
+  } else if(options.kind==='cup'){
+    const blue=mat(0xa5c9c1),pitcherMaterial=mat(0xd6e7df);
+    pitcher=mesh(new THREE.CylinderGeometry(.32,.27,.55,24),pitcherMaterial,1.2,2.0,0);pitcher.visible=false;
+    pourFlow=mesh(new THREE.CylinderGeometry(.055,.055,1.05,12),blue,.68,1.63,0);pourFlow.rotation.z=-.68;pourFlow.visible=false;
+  }
   mainCup.liquid.visible=!options.empty;
-  let targetWater=Number(options.water)||0,currentWater=targetWater,raf=0,disposed=false,reduceByUser=options.reducedMotion===true;
+  let targetWater=Number(options.water)||0,currentWater=targetWater,raf=0,disposed=false,reduceByUser=options.reducedMotion===true,animation=null;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-  function resize(){if(disposed)return;const width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);renderer.setSize(width,height,false);const aspect=width/height;const view=Math.max(options.kind==='world'?3.4:2.6,(tableRadius+0.4)/aspect);camera.left=-view*aspect;camera.right=view*aspect;camera.top=view;camera.bottom=-view;camera.updateProjectionMatrix();draw();}
+  function resize(){if(disposed)return;const width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);renderer.setSize(width,height,false);const aspect=width/height;const view=Math.max(options.kind==='world'?3.4:options.kind==='extract'?3.3:2.6,(tableRadius+0.4)/aspect);camera.left=-view*aspect;camera.right=view*aspect;camera.top=view;camera.bottom=-view;camera.updateProjectionMatrix();draw();}
   function draw(){if(!disposed){try{renderer.render(scene,camera);}catch{onFailure();}}}
-  function tick(){if(disposed)return;currentWater+=(targetWater-currentWater)*.18;if(Math.abs(targetWater-currentWater)<.5)currentWater=targetWater;const mix=Math.min(currentWater/250,1);mainCup.liquid.material.color.set(0x63402d).lerp(new THREE.Color(0xb48b68),mix*.65);draw();if(!disposed&&currentWater!==targetWater)raf=requestAnimationFrame(tick);else raf=0;}
+  function renderLiquid(level,waterAmount){const fraction=Math.max(.05,Math.min(1,level));mainCup.liquid.position.y=.15+fraction*.68;const radius=(.42+fraction*.18)/.565;mainCup.liquid.scale.set(radius,1,radius);mainCup.liquid.material.color.set(0x63402d).lerp(new THREE.Color(0xb48b68),Math.min(waterAmount/250,1)*.45);}
+  function applyFrame(progress){
+    if(!animation)return;
+    if(animation.type==='extract'){
+      const state=extractionFrame(progress);waterFlow.visible=state.waterFlow;coffeeFlow.visible=state.coffeeFlow;mainCup.liquid.visible=state.filled>0;renderLiquid(state.filled,0);
+    }else{
+      const state=pourFrame(animation.from,animation.to,progress);currentWater=state.water;pourFlow.visible=state.pouring;pitcher.visible=state.pouring;renderLiquid(.32+Math.min(currentWater/250,1)*.65,currentWater);
+    }
+    if(progress>=1)animation=null;
+  }
+  if(options.kind==='cup')renderLiquid(.32,0);
+  function tick(time){if(disposed)return;raf=0;if(animation){if(animation.started===null)animation.started=time??performance.now();const elapsed=(time??performance.now())-animation.started;applyFrame(Math.min(elapsed/animation.duration,1));}draw();if(!disposed&&animation)raf=requestAnimationFrame(tick);}
   const observer=new ResizeObserver(resize);observer.observe(host);
   const lost=event=>{event.preventDefault();onFailure();};canvas.addEventListener('webglcontextlost',lost);
-  const onSystemMotion=event=>{if(event.matches&&raf){cancelAnimationFrame(raf);raf=0;currentWater=targetWater;tick();}};
+  const onSystemMotion=event=>{if(event.matches&&animation){if(raf)cancelAnimationFrame(raf);raf=0;applyFrame(1);draw();}};
   reduced.addEventListener('change',onSystemMotion);
   return {canvas,render:resize,update(state){
-    if(state.empty!==undefined)mainCup.liquid.visible=!state.empty;
+    if(state.empty!==undefined&&state.process!=='extract')mainCup.liquid.visible=!state.empty;
     if(state.reducedMotion!==undefined)reduceByUser=state.reducedMotion===true;
     if(state.ingredient!==undefined){for(const [id,material] of Object.entries(highlights)){material.emissive.set(id===state.ingredient?0x51432e:0x000000);material.emissiveIntensity=.75;}const positions={beans:[-2,.72],water:[1.75,1.25],milk:[-1.8,1.25]};if(marker){const position=positions[state.ingredient];marker.visible=Boolean(position);if(position)marker.position.set(position[0],-.16,position[1]);}draw();}
-    if(state.water!==undefined)targetWater=Number(state.water)||0;
-    if(reduceByUser||reduced.matches){currentWater=targetWater;if(raf){cancelAnimationFrame(raf);raf=0;}}
-    if(!raf)tick();
+    if(state.process==='extract'&&options.kind==='extract'){
+      if(raf)cancelAnimationFrame(raf);raf=0;animation={type:'extract',started:null,duration:2400};
+      if(reduceByUser||reduced.matches||state.instant){applyFrame(1);draw();}else {applyFrame(0);draw();raf=requestAnimationFrame(tick);}
+    }else if(state.water!==undefined&&options.kind==='cup'){
+      const next=Number(state.water)||0,transition=pourTransition(currentWater,targetWater,next);targetWater=next;if(raf)cancelAnimationFrame(raf);raf=0;
+      animation={type:'pour',from:transition.from,to:transition.to,started:null,duration:1300};
+      if(!transition.animate||reduceByUser||reduced.matches||state.instant){applyFrame(1);draw();}else {applyFrame(0);draw();raf=requestAnimationFrame(tick);}
+    }else if(state.reducedMotion&&(animation)){if(raf)cancelAnimationFrame(raf);raf=0;applyFrame(1);draw();}
+    else draw();
   },dispose(){if(disposed)return;disposed=true;if(raf)cancelAnimationFrame(raf);observer.disconnect();reduced.removeEventListener('change',onSystemMotion);canvas.removeEventListener('webglcontextlost',lost);scene.traverse(object=>{object.geometry?.dispose();if(object.material){for(const material of (Array.isArray(object.material)?object.material:[object.material]))material.dispose();}});renderer.dispose();}};
 }

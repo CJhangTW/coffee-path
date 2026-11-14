@@ -146,6 +146,43 @@ test('序章選擇與取消原料同步場景且不繞過通關', async () => {
   const boxes=view.querySelectorAll('.ingredient-list input');boxes[0].click();assert(selected==='beans',`選豆應指出咖啡豆（目前 ${selected}）`);boxes[1].click();assert(selected==='water','選水應指出水');boxes[1].click();assert(selected==='beans','取消水後回到已選的豆');boxes[0].click();assert(selected===null,'全部取消應清除標記');
   boxes[0].click();boxes[1].click();view.querySelector('input[value="v60"]').click();view.querySelector('button.primary').click();assert(completed===0,'少選原料不得通關');boxes[2].click();view.querySelector('button.primary').click();assert(completed===1,'選擇三種原料且答對才完成');view.remove();
 });
+test('萃取示意依序顯示水經粉床與咖啡流入杯中', async () => {
+  const {extractionFrame}=await import('../site/js/domain/process-frames.js');
+  const start=extractionFrame(0),wet=extractionFrame(.25),flow=extractionFrame(.6),done=extractionFrame(1);
+  assert(!start.waterFlow&&!start.coffeeFlow&&start.filled===0,'起始不能已有萃取液');
+  assert(wet.waterFlow&&!wet.coffeeFlow&&wet.filled===0,'水先通過粉床');
+  assert(flow.waterFlow&&flow.coffeeFlow&&flow.filled>0&&flow.filled<1,'萃取液再流入杯中');
+  assert(!done.waterFlow&&!done.coffeeFlow&&done.filled===1,'完成後停止出液');
+});
+test('加水示意僅在增加水量時傾倒並增加杯量', async () => {
+  const {pourFrame}=await import('../site/js/domain/process-frames.js');
+  const start=pourFrame(0,120,0),mid=pourFrame(0,120,.5),end=pourFrame(0,120,1),decrease=pourFrame(120,20,.5);
+  assert(start.water===0&&mid.water===60&&end.water===120,'杯中水量應隨時間增加');
+  assert(mid.pouring&&!end.pouring,'倒水只在過程中顯示');
+  assert(!decrease.pouring&&decrease.water===20,'減少水量不能倒流或倒水');
+});
+test('倒水尚未完成時降低目標不再繼續倒水', async () => {
+  const {pourTransition}=await import('../site/js/domain/process-frames.js');
+  const decrease=pourTransition(40,120,80),increase=pourTransition(40,120,150);
+  assert(!decrease.animate&&decrease.from===80&&decrease.to===80,'降低目標應立即更新而非繼續倒水');
+  assert(increase.animate&&increase.from===40&&increase.to===150,'提高目標應從目前畫面持續加水');
+});
+test('流程中切換到 2D 時呈現最終狀態而不重播', async () => {
+  const {createSceneController}=await import('../site/js/ui/scene-controller.js');
+  const host=document.createElement('div');const fallback=document.createElement('div');fallback.innerHTML='<div class="extraction-diagram is-extracting"></div><div class="pour-diagram is-pouring"></div>';host.append(fallback);
+  const controller=createSceneController(host,fallback,async()=>({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(){},dispose(){}})}));
+  await controller.enable();controller.disable();assert(!fallback.hidden,'應回到 2D');assert(fallback.querySelector('.is-complete'),'萃取應顯示完成狀態');assert(!fallback.querySelector('.is-extracting,.is-pouring'),'切換時不應重播');controller.dispose();
+});
+test('萃取關卡與 Lab 傳遞正確流程及 2D 備援', async () => {
+  const {journey}=await import('../site/js/features/journey.js');const {lab}=await import('../site/js/features/lab.js');
+  const lessons=(await (await fetch('../site/data/lessons.json')).json()).lessons;
+  const view=journey(lessons[1],{completedLessonIds:[]},()=>true);document.body.append(view);let event;
+  view.querySelector('[data-scene]').addEventListener('coffee-scene-update',e=>{event=e.detail;});
+  assert(view.textContent.includes('咖啡粉床'),'萃取流程必須有粉床');view.querySelector('button.secondary').click();
+  assert(event.process==='extract'&&view.querySelector('.is-extracting'),'啟動應傳遞萃取過程至場景及 2D');view.remove();
+  const area=lab();document.body.append(area);const input=area.querySelector('#lab-water');input.value='120';input.dispatchEvent(new Event('input'));
+  assert(area.querySelector('.is-pouring'),'增加水量應呈現倒水');input.value='20';input.dispatchEvent(new Event('input'));assert(!area.querySelector('.is-pouring'),'減少水量不應倒流');area.remove();
+});
 test('首頁展示原料、製程與飲品的關係及尚未開放的路徑', async () => {
   const {home}=await import('../site/js/features/home.js');const page=home();
   assert(page.textContent.includes('咖啡豆')&&page.textContent.includes('水')&&page.textContent.includes('牛奶'),'應指出三種原料');
