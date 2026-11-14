@@ -66,7 +66,7 @@ export function createScene(host, options, onFailure) {
   function applyFrame(progress){
     if(!animation)return;
     if(animation.type==='extract'){
-      const state=extractionFrame(progress);waterFlow.visible=state.waterFlow;coffeeFlow.visible=state.coffeeFlow;mainCup.liquid.visible=state.filled>0;renderLiquid(state.filled,0);
+      const state=extractionFrame(progress);waterFlow.visible=state.waterFlow;coffeeFlow.visible=state.coffeeFlow;mainCup.liquid.visible=state.filled>0;renderLiquid(state.filled*(animation.extended?0.95:0.55),0);
     }else{
       const state=pourFrame(animation.from,animation.to,progress);currentWater=state.water;pourFlow.visible=state.pouring;pitcher.visible=state.pouring;renderLiquid(.32+Math.min(currentWater/250,1)*.65,currentWater);
     }
@@ -83,7 +83,7 @@ export function createScene(host, options, onFailure) {
     if(state.reducedMotion!==undefined)reduceByUser=state.reducedMotion===true;
     if(state.ingredient!==undefined){for(const [id,material] of Object.entries(highlights)){material.emissive.set(id===state.ingredient?0x51432e:0x000000);material.emissiveIntensity=.75;}const positions={beans:[-2,.72],water:[1.75,1.25],milk:[-1.8,1.25]};if(marker){const position=positions[state.ingredient];marker.visible=Boolean(position);if(position)marker.position.set(position[0],-.16,position[1]);}draw();}
     if(state.process==='extract'&&options.kind==='extract'){
-      if(raf)cancelAnimationFrame(raf);raf=0;animation={type:'extract',started:null,duration:2400};
+      if(raf)cancelAnimationFrame(raf);raf=0;animation={type:'extract',extended:state.extended===true,started:null,duration:state.extended?3600:2400};
       if(reduceByUser||reduced.matches||state.instant){applyFrame(1);draw();}else {applyFrame(0);draw();raf=requestAnimationFrame(tick);}
     }else if(state.water!==undefined&&options.kind==='cup'){
       const next=Number(state.water)||0,transition=pourTransition(currentWater,targetWater,next);targetWater=next;if(raf)cancelAnimationFrame(raf);raf=0;

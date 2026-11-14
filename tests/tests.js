@@ -173,6 +173,44 @@ test('流程中切換到 2D 時呈現最終狀態而不重播', async () => {
   const controller=createSceneController(host,fallback,async()=>({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(){},dispose(){}})}));
   await controller.enable();controller.disable();assert(!fallback.hidden,'應回到 2D');assert(fallback.querySelector('.is-complete'),'萃取應顯示完成狀態');assert(!fallback.querySelector('.is-extracting,.is-pouring'),'切換時不應重播');controller.dispose();
 });
+test('對照關卡必須觀察兩種做法並答對', async () => {
+  const {evaluateChallenge}=await import('../site/js/domain/lesson-engine.js');
+  const lesson={challenge:{type:'observe-and-choice',requiredActionIds:['lungo','americano'],correctOptionIds:['through']}};
+  assert(!evaluateChallenge(lesson,{observedActionIds:['lungo']},'through').passed,'只觀察一種不得通關');
+  assert(!evaluateChallenge(lesson,{observedActionIds:['lungo','americano']},'wrong').passed,'錯答不得通關');
+  assert(evaluateChallenge(lesson,{observedActionIds:['lungo','americano']},'through').passed,'完成兩種觀察且答對才通關');
+});
+test('完成完整水章只發放一次章節獎勵與長萃卡', async () => {
+  const {completeLesson,totalPoints}=await import('../site/js/domain/progression.js');
+  const chapters={intro:['intro-01'],water:['water-01','water-02','water-03']};
+  const initial={completedLessonIds:['intro-01','water-01','water-02'],awardedAchievementIds:['chapter-intro'],collectedDrinkIds:['espresso','americano']};
+  const lesson={id:'water-03',chapterId:'water',rewardDrinkIds:['lungo']};const once=completeLesson(initial,lesson,chapters).progress;const twice=completeLesson(once,lesson,chapters).progress;
+  assert(totalPoints(once)===80&&totalPoints(twice)===80,'完成水章總點數應為 80，重玩不加點');assert(twice.collectedDrinkIds.filter(id=>id==='lungo').length===1,'長萃卡僅收藏一次');
+});
+test('水章對照操作與資料導覽支援完整通關', async () => {
+  const {journey}=await import('../site/js/features/journey.js');const data=await (await fetch('../site/data/lessons.json')).json();
+  const lesson=data.lessons.find(item=>item.id==='water-03');assert(lesson,'必須提供水章第三關');let awarded=0;
+  const view=journey(lesson,{completedLessonIds:[]},()=>{awarded++;return true;},[],data.lessons);document.body.append(view);
+  const actions=view.querySelectorAll('[data-observe-action]');assert(actions.length===2,'需提供兩種操作');
+  actions[0].click();view.querySelector('input[value="through"]').click();view.querySelector('button.primary').click();assert(awarded===0,'只看一種不能完成');
+  actions[1].click();view.querySelector('button.primary').click();assert(awarded===1,'兩種操作與正確答案完成關卡');view.remove();
+});
+test('對照關卡需有可解析且不重複的觀察動作', async () => {
+  const {validateContent}=await import('../site/js/domain/content-validator.js');
+  const [lessons,drinks,sources]=await Promise.all(['../site/data/lessons.json','../site/data/drinks.json','../site/data/sources.json'].map(async p=>(await fetch(p)).json()));
+  const comparison=lessons.lessons.find(item=>item.id==='water-03');comparison.challenge.requiredActionIds.push('unknown');
+  assert(!validateContent(lessons,drinks,sources),'未知動作不可通過資料檢查');
+  comparison.challenge.requiredActionIds=['lungo','lungo'];assert(!validateContent(lessons,drinks,sources),'必要動作不得重複');
+});
+test('水章第二關的下一步由資料順序接至第三關', async () => {
+  const {journey}=await import('../site/js/features/journey.js');const data=await (await fetch('../site/data/lessons.json')).json();
+  const view=journey(data.lessons.find(item=>item.id==='water-02'),{completedLessonIds:[]},()=>true,[],data.lessons);
+  assert(view.querySelector('a[href="#/journey/water-03"]'),'跳過或下一步應能前往水章第三關');
+});
+test('資料檢查拒絕不存在的正確答案', async () => {
+  const {validateContent}=await import('../site/js/domain/content-validator.js');const [lessons,drinks,sources]=await Promise.all(['../site/data/lessons.json','../site/data/drinks.json','../site/data/sources.json'].map(async p=>(await fetch(p)).json()));
+  lessons.lessons.find(item=>item.id==='water-03').challenge.correctOptionIds=['missing'];assert(!validateContent(lessons,drinks,sources),'不可使用沒有對應選項的答案');
+});
 test('加水前不稱美式，減量明示配方調整', async () => {
   const {waterProcessMeaning}=await import('../site/js/domain/process-frames.js');
   assert(waterProcessMeaning(0,0).result==='espresso','未加水保持濃縮');

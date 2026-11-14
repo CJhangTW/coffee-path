@@ -109,6 +109,61 @@
         "bh-americano",
         "bh-lungo"
       ]
+    },
+    {
+      "id": "water-03",
+      "chapterId": "water",
+      "title": "Lungo 和 Americano，水走過哪裡？",
+      "eyebrow": "水的魔法 · 03",
+      "prompt": "兩杯咖啡都可能比 Espresso 大杯，但水經過的路徑不同。分別觀察兩種做法，再比較。",
+      "question": "哪一個描述正確？",
+      "options": [
+        {
+          "id": "through",
+          "text": "Lungo 讓更多水通過粉床；Americano 在萃取後加水"
+        },
+        {
+          "id": "same",
+          "text": "兩者都是萃取完成後才加水"
+        }
+      ],
+      "challenge": {
+        "type": "observe-and-choice",
+        "requiredActionIds": [
+          "lungo",
+          "americano"
+        ],
+        "correctOptionIds": [
+          "through"
+        ]
+      },
+      "observations": [
+        {
+          "id": "lungo",
+          "title": "Lungo 長萃濃縮",
+          "type": "extract",
+          "button": "觀察延長萃取",
+          "description": "水繼續通過咖啡粉床，直接萃出較多咖啡液；此圖為流程示意。",
+          "extended": true
+        },
+        {
+          "id": "americano",
+          "title": "Americano 美式咖啡",
+          "type": "pour",
+          "button": "觀察萃取後加水",
+          "description": "Espresso 已萃取完成，再把水加入杯中；水不再穿過咖啡粉床。",
+          "waterG": 120
+        }
+      ],
+      "wrong": "Lungo 的水繼續穿過咖啡粉床；Americano 的水在萃取完成後直接加入杯中。",
+      "summary": "兩者的關鍵不是杯子大小，而是水是否繼續通過咖啡粉床；實際配方會因店家而異。",
+      "rewardDrinkIds": [
+        "lungo"
+      ],
+      "sourceIds": [
+        "bh-lungo",
+        "bh-americano"
+      ]
     }
   ]
 }
