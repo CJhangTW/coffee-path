@@ -32,7 +32,7 @@
 - **Topics**：`coffee`, `coffee-education`, `interactive-learning`, `vanilla-javascript`, `static-site`, `cloudflare-pages`；實際加入 Three.js 後才需增加 `threejs`
 - **Default branch**：`main`
 - **Branch examples**：`feat/journey-intro`, `feat/lab-controls`, `fix/storage-migration`, `docs/cloudflare-pages`
-- **Commit examples**：`feat: add espresso lesson`, `fix: prevent duplicate bean point rewards`, `docs: explain static deployment`
+- **Commit 範例**：`新增 Espresso 課程`、`修正豆點重複發放`、`補充靜態網站部署說明`。標題及內文使用臺灣繁體中文；內文依 `AGENTS.md` 記錄範圍、變更、驗證及重要未完成事項，技術名詞可保留原文。
 - **Release tags**：`v0.1.0`, `v0.2.0` 等，不放在 repo 名稱中。
 - **建議基礎檔案**：`README.md`、`AGENTS.md`、`.editorconfig`、`.gitignore`、授權檔（取得擁有者確認後）、`docs/`、`tests/`。
 
