@@ -1,4 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
+import {createAmbientMotion} from './ambient-motion.js';
 
 /** Create a small procedural scene; never owns application or progress state. */
 export function createScene(host, options, onFailure) {
@@ -45,5 +46,14 @@ export function createScene(host, options, onFailure) {
   function tick(){if(disposed)return;currentWater+=(targetWater-currentWater)*.18;if(Math.abs(targetWater-currentWater)<.5)currentWater=targetWater;const mix=Math.min(currentWater/250,1);mainCup.liquid.material.color.set(0x63402d).lerp(new THREE.Color(0xb48b68),mix*.65);draw();if(!disposed&&currentWater!==targetWater)raf=requestAnimationFrame(tick);else raf=0;}
   const observer=new ResizeObserver(resize);observer.observe(host);
   const lost=event=>{event.preventDefault();onFailure();};canvas.addEventListener('webglcontextlost',lost);
-  return {canvas,render:resize,update(state){if(state.empty!==undefined)mainCup.liquid.visible=!state.empty;targetWater=Number(state.water)||0;if(reduced.matches){currentWater=targetWater;}if(!raf)tick();},dispose(){if(disposed)return;disposed=true;if(raf)cancelAnimationFrame(raf);observer.disconnect();canvas.removeEventListener('webglcontextlost',lost);scene.traverse(object=>{object.geometry?.dispose();if(object.material){for(const material of (Array.isArray(object.material)?object.material:[object.material]))material.dispose();}});renderer.dispose();}};
+  let ambient=null,intersection=null;
+  const onPageVisibility=()=>ambient?.setPageVisible(!document.hidden);
+  const onMotionPreference=event=>ambient?.setReduced(event.matches);
+  if(options.kind==='world'){
+    ambient=createAmbientMotion({render:angle=>{camera.position.set(5*Math.cos(angle)+8*Math.sin(angle),6,8*Math.cos(angle)-5*Math.sin(angle));camera.lookAt(0,.2,0);draw();},requestFrame:requestAnimationFrame,cancelFrame:cancelAnimationFrame});
+    ambient.setReduced(reduced.matches);ambient.setPageVisible(!document.hidden);
+    document.addEventListener('visibilitychange',onPageVisibility);reduced.addEventListener('change',onMotionPreference);
+    if('IntersectionObserver' in window){intersection=new IntersectionObserver(entries=>ambient?.setVisible(entries.some(entry=>entry.isIntersecting)));intersection.observe(host);}else ambient.setVisible(true);
+  }
+  return {canvas,render:resize,update(state){if(state.empty!==undefined)mainCup.liquid.visible=!state.empty;targetWater=Number(state.water)||0;if(reduced.matches){currentWater=targetWater;}if(!raf)tick();},dispose(){if(disposed)return;disposed=true;if(raf)cancelAnimationFrame(raf);ambient?.dispose();intersection?.disconnect();document.removeEventListener('visibilitychange',onPageVisibility);reduced.removeEventListener('change',onMotionPreference);observer.disconnect();canvas.removeEventListener('webglcontextlost',lost);scene.traverse(object=>{object.geometry?.dispose();if(object.material){for(const material of (Array.isArray(object.material)?object.material:[object.material]))material.dispose();}});renderer.dispose();}};
 }

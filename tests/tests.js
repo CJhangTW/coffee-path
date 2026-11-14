@@ -126,6 +126,16 @@ test('首頁展示原料、製程與飲品的關係及尚未開放的路徑', as
   assert(page.textContent.includes('手沖')&&page.textContent.includes('冷萃')&&page.textContent.includes('規劃中'),'應標明未開放路徑');
   assert(page.querySelector('a[href="#/journey/intro-01"]')&&page.querySelector('a[href="#/lab"]'),'兩個入口仍可使用');
 });
+test('細微動態只在可見且允許動畫時執行', async () => {
+  const {createAmbientMotion}=await import('../site/js/ui/ambient-motion.js');
+  const callbacks=new Map();let id=0,angle=0;const requestFrame=cb=>{callbacks.set(++id,cb);return id;};const cancelFrame=key=>callbacks.delete(key);
+  const motion=createAmbientMotion({render:value=>{angle=value;},requestFrame,cancelFrame});
+  const step=time=>{const [key,fn]=callbacks.entries().next().value;callbacks.delete(key);fn(time);};
+  motion.setVisible(true);assert(callbacks.size===1,'場景可見應啟動');step(0);step(100);assert(angle>0&&angle<0.1,'角度應小幅度變化');
+  motion.setPageVisible(false);assert(callbacks.size===0,'背景分頁應停止');motion.setPageVisible(true);assert(callbacks.size===1,'返回分頁應恢復');
+  motion.setReduced(true);assert(callbacks.size===0&&angle===0,'減少動態時停止並回到原位');motion.setReduced(false);motion.setVisible(false);assert(callbacks.size===0,'離開視窗時應停止');
+  motion.setVisible(true);motion.dispose();assert(callbacks.size===0,'移除場景應取消排程');
+});
 
 let failures=0; const lines=[];
 for (const {name,fn} of tests) { try {await fn(); lines.push(`PASS ${name}`);} catch(e) {failures++; lines.push(`FAIL ${name}: ${e.message}`);} }
