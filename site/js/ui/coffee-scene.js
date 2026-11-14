@@ -47,6 +47,8 @@ export function createScene(host, options, onFailure) {
     const metal=mat(0x918d80),puck=mat(0x69442f),blue=mat(0x99c5c1);
     mesh(new THREE.CylinderGeometry(.78,.72,.18,32),metal,0,2.56,0);
     mesh(new THREE.CylinderGeometry(.64,.64,.18,32),puck,0,2.67,0);
+    const holder=mesh(new THREE.CylinderGeometry(.08,.1,.85,16),metal,1.12,2.55,0);holder.rotation.z=-Math.PI/2;
+    const grip=mesh(new THREE.CylinderGeometry(.13,.15,.65,16),dark,1.8,2.55,0);grip.rotation.z=-Math.PI/2;
     mesh(new THREE.CylinderGeometry(.35,.35,.22,24),blue,0,3.62,0);
     waterFlow=mesh(new THREE.CylinderGeometry(.075,.075,.77,16),blue,0,3.13,0);waterFlow.visible=false;
     coffeeFlow=mesh(new THREE.CylinderGeometry(.065,.065,1.15,16),coffee,0,1.9,0);coffeeFlow.visible=false;

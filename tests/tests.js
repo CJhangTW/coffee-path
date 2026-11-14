@@ -173,6 +173,25 @@ test('流程中切換到 2D 時呈現最終狀態而不重播', async () => {
   const controller=createSceneController(host,fallback,async()=>({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(){},dispose(){}})}));
   await controller.enable();controller.disable();assert(!fallback.hidden,'應回到 2D');assert(fallback.querySelector('.is-complete'),'萃取應顯示完成狀態');assert(!fallback.querySelector('.is-extracting,.is-pouring'),'切換時不應重播');controller.dispose();
 });
+test('加水前不稱美式，減量明示配方調整', async () => {
+  const {waterProcessMeaning}=await import('../site/js/domain/process-frames.js');
+  assert(waterProcessMeaning(0,0).result==='espresso','未加水保持濃縮');
+  assert(waterProcessMeaning(120,0).change==='add'&&waterProcessMeaning(120,0).result==='diluted','加水才顯示稀釋示意');
+  assert(waterProcessMeaning(80,120).change==='adjust','減少數值不是倒出液體');
+  assert(waterProcessMeaning(0,80).result==='espresso','歸零回到濃縮');
+});
+test('關卡與 Lab 只在有加水後顯示美式風格示意', async () => {
+  const {journey}=await import('../site/js/features/journey.js');const {lab}=await import('../site/js/features/lab.js');
+  const lessons=(await (await fetch('../site/data/lessons.json')).json()).lessons;
+  for(const [view,selector] of [[journey(lessons[2],{completedLessonIds:[]},()=>true),'#water-number'],[lab(),'#lab-water']]){
+    document.body.append(view);const sequence=view.querySelector('.process-sequence'),input=view.querySelector(selector);
+    assert(!sequence.textContent.includes('Americano'),'初始尚未加水不得顯示美式結果');
+    input.value='120';input.dispatchEvent(new Event('input'));assert(sequence.textContent.includes('Americano'),'加水後應顯示製作方式示意');
+    input.value='-1';input.dispatchEvent(new Event('input'));assert(view.textContent.includes('請輸入 0–250 g')&&sequence.textContent.includes('Americano'),'非法輸入保留上一個有效狀態並顯示原因');
+    input.value='80';input.dispatchEvent(new Event('input'));assert(view.textContent.includes('重新設定配方'),'減量應說明是配方調整');
+    input.value='0';input.dispatchEvent(new Event('input'));assert(!sequence.textContent.includes('Americano'),'歸零後回到濃縮');view.remove();
+  }
+});
 test('萃取關卡與 Lab 傳遞正確流程及 2D 備援', async () => {
   const {journey}=await import('../site/js/features/journey.js');const {lab}=await import('../site/js/features/lab.js');
   const lessons=(await (await fetch('../site/data/lessons.json')).json()).lessons;

@@ -15,3 +15,12 @@ export function pourFrame(from,to,progress) {
 export function pourTransition(current,previousTarget,nextTarget) {
   return nextTarget>previousTarget?{from:current,to:nextTarget,animate:true}:{from:nextTarget,to:nextTarget,animate:false};
 }
+
+/** Describe an accepted recipe adjustment without inventing a precise drink boundary. */
+export function waterProcessMeaning(current,previous) {
+  return {
+    result:current===0?'espresso':'diluted',
+    change:current>previous?'add':current<previous?'adjust':'unchanged',
+    sequence:current===0?'已萃取的 Espresso（尚未加水）':'Espresso → 萃取後加水（Americano 製作方式示意）'
+  };
+}
