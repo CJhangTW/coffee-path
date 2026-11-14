@@ -119,6 +119,13 @@ test('選擇 2D 後換頁仍保留 2D', async () => {
   const next=createRoot();stop=mountScenes(next,{visualMode:preference,onPreference:v=>{preference=v;},loader,schedule});await new Promise(resolve=>setTimeout(resolve,0));
   assert(!next.querySelector('canvas'),'換頁後不應自動啟用 3D');stop();next.remove();
 });
+test('首頁展示原料、製程與飲品的關係及尚未開放的路徑', async () => {
+  const {home}=await import('../site/js/features/home.js');const page=home();
+  assert(page.textContent.includes('咖啡豆')&&page.textContent.includes('水')&&page.textContent.includes('牛奶'),'應指出三種原料');
+  assert(page.textContent.includes('萃取')&&page.textContent.includes('飲品'),'應解釋原料與飲品的關係');
+  assert(page.textContent.includes('手沖')&&page.textContent.includes('冷萃')&&page.textContent.includes('規劃中'),'應標明未開放路徑');
+  assert(page.querySelector('a[href="#/journey/intro-01"]')&&page.querySelector('a[href="#/lab"]'),'兩個入口仍可使用');
+});
 
 let failures=0; const lines=[];
 for (const {name,fn} of tests) { try {await fn(); lines.push(`PASS ${name}`);} catch(e) {failures++; lines.push(`FAIL ${name}: ${e.message}`);} }

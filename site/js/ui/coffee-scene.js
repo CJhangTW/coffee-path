@@ -27,9 +27,13 @@ export function createScene(host, options, onFailure) {
   }
   let mainCup;
   if(options.kind==='world'){
-    mainCup=makeCup(-.1,.35,1.18);makeCup(1.9,-.65,.74);makeCup(-2,-.8,.72);
+    mainCup=makeCup(-.1,.35,1.18);makeCup(1.9,-.65,.74);const latte=makeCup(-2,-.8,.72);
+    latte.liquid.material.color.set(0xd2a27e);
+    const foam=new THREE.Mesh(new THREE.TorusGeometry(.26,.055,10,32),milk);foam.rotation.x=Math.PI/2;foam.position.y=.91;latte.group.add(foam);
     const glass=mesh(new THREE.CylinderGeometry(.36,.29,1.2,32),water,1.75,.47,1.25);glass.material.transparent=true;glass.material.opacity=.8;
     mesh(new THREE.CylinderGeometry(.34,.36,.85,32),milk,-1.8,.32,1.25);
+    const pitcherHandle=mesh(new THREE.TorusGeometry(.22,.06,10,24),cream,-1.43,.42,1.25);pitcherHandle.scale.set(.7,1,1);
+    const pitcherRim=mesh(new THREE.TorusGeometry(.33,.04,10,32),cream,-1.8,.76,1.25);pitcherRim.rotation.x=Math.PI/2;
     for(let i=0;i<7;i++){const bean=mesh(new THREE.SphereGeometry(.16,16,12),dark,-2.8+i*.27,-.05,.65+(i%2)*.2);bean.scale.set(.7,.4,1);bean.rotation.y=i*.55;}
     const dripper=mesh(new THREE.CylinderGeometry(.55,.15,.75,32),green,1.9,.85,-.65);dripper.position.y=1.05;
   } else {mainCup=makeCup(0,0,1.6);}
