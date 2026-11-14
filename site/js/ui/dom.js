@@ -5,3 +5,13 @@ export function cup(water=0,empty=false){const ratio=Math.min(Math.max(water/250
 export function extractionDiagram(running=false,extended=false){const diagram=el('div',{class:`extraction-diagram${running?' is-extracting':''}${extended?' is-extended':''}`,'aria-hidden':'true'},el('div',{class:'diagram-water'},'水'),el('div',{class:'diagram-water-flow'}),el('div',{class:'diagram-puck'},'咖啡粉床'),el('div',{class:'diagram-coffee-flow'}),el('div',{class:'diagram-cup'},el('div',{class:'diagram-liquid'})));if(running)setTimeout(()=>{diagram.classList.remove('is-extracting');diagram.classList.add('is-complete');},extended?3600:2400);return diagram;}
 /** The pour indicator is decorative; the accompanying text gives exact weights. */
 export function pouringDiagram(water=0,pouring=false,previous=0){const from=30+Math.min(Math.max(previous/250,0),1)*65;const diagram=el('div',{class:`pour-diagram${pouring?' is-pouring':''}`,'aria-hidden':'true',style:`--previous-cup-level:${from}%`},el('div',{class:'diagram-pitcher'},'水'),el('div',{class:'diagram-pour-flow'}),cup(water));if(pouring)setTimeout(()=>diagram.classList.remove('is-pouring'),1300);return diagram;}
+/** The source distinguishes a spoonful of foam from a pour of liquid milk. */
+export function milkDiagram(amount=0,kind='milk',running=false){
+  const ratio=Math.min(amount/100,1),height=30+ratio*35;
+  const color=kind==='foam'?'#71462f':`rgb(${Math.round(113+70*ratio)},${Math.round(70+68*ratio)},${Math.round(47+62*ratio)})`;
+  const liquid=el('div',{class:'cup-liquid',style:`--cup-level:${height}%;height:${height}%;background:${color}`});
+  const foam=kind==='foam'&&amount>0?el('div',{class:'milk-foam',style:`bottom:${height-3}%`}):null;
+  const mug=el('div',{class:'cup cup-diagram','aria-hidden':'true'},liquid,foam);
+  const diagram=el('div',{class:`pour-diagram milk-diagram${running?' is-pouring':''}${kind==='foam'?' is-foam':''}`,'aria-hidden':'true',style:'--previous-cup-level:30%'},el('div',{class:'diagram-pitcher'},kind==='foam'?'奶泡匙':'牛奶'),el('div',{class:'diagram-pour-flow'}),mug);
+  if(running)setTimeout(()=>diagram.classList.remove('is-pouring'),1300);return diagram;
+}

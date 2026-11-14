@@ -168,6 +168,36 @@
         "pdg-cortado"
       ],
       "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "espresso-macchiato",
+      "kind": "drink",
+      "family": "espresso-milk",
+      "name": {
+        "zhHant": "義式瑪奇朵",
+        "en": "Espresso Macchiato"
+      },
+      "aliases": [],
+      "ingredientPolicy": "strict",
+      "baseMethods": [
+        "espresso"
+      ],
+      "temperatures": [
+        "hot"
+      ],
+      "intro": "以少量牛奶或奶泡點綴 Espresso，通常保有咖啡主體。",
+      "explain": "此處指 Espresso Macchiato，與牛奶較多的 Latte Macchiato 不同。",
+      "deep": "牛奶或奶泡的形式、重量及出杯方式會依地區與店家不同。",
+      "relatedDrinkIds": [
+        "espresso",
+        "cortado"
+      ],
+      "confidence": "provisional",
+      "sources": [
+        "bh-macchiato",
+        "pdg-milk"
+      ],
+      "updatedAt": "2026-11-15"
     }
   ]
 }

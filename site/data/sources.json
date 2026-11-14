@@ -1,8 +1,39 @@
-{"items":[
-{"id":"sca-espresso","title":"Specialty Coffee Association：Competition Espresso Machine Specifications","url":"https://sca.coffee/s/Competition-Espresso-Machine-Specifications-2021.pdf"},
-{"id":"bh-americano","title":"Barista Hustle：Americano","url":"https://www.baristahustle.com/glossary/americano/"},
-{"id":"bh-lungo","title":"Barista Hustle：Lungo","url":"https://www.baristahustle.com/glossary/lungo/"},
-{"id":"pdg-milk","title":"Perfect Daily Grind：Microfoam and milk-based drinks","url":"https://perfectdailygrind.com/2024/01/microfoam-milk-coffee-latte-art/"},
-{"id":"pdg-cortado","title":"Perfect Daily Grind：What Is a Cortado?","url":"https://perfectdailygrind.com/2020/03/what-is-a-cortado/"},
-{"id":"hario-v60","title":"HARIO：V60 Ceramic Coffee Dripper","url":"https://www.hario-usa.com/products/v60-ceramic-coffee-dripper-01"}
-]}
+{
+  "items": [
+    {
+      "id": "sca-espresso",
+      "title": "Specialty Coffee Association：Competition Espresso Machine Specifications",
+      "url": "https://sca.coffee/s/Competition-Espresso-Machine-Specifications-2021.pdf"
+    },
+    {
+      "id": "bh-americano",
+      "title": "Barista Hustle：Americano",
+      "url": "https://www.baristahustle.com/glossary/americano/"
+    },
+    {
+      "id": "bh-lungo",
+      "title": "Barista Hustle：Lungo",
+      "url": "https://www.baristahustle.com/glossary/lungo/"
+    },
+    {
+      "id": "pdg-milk",
+      "title": "Perfect Daily Grind：Microfoam and milk-based drinks",
+      "url": "https://perfectdailygrind.com/2024/01/microfoam-milk-coffee-latte-art/"
+    },
+    {
+      "id": "pdg-cortado",
+      "title": "Perfect Daily Grind：What Is a Cortado?",
+      "url": "https://perfectdailygrind.com/2020/03/what-is-a-cortado/"
+    },
+    {
+      "id": "hario-v60",
+      "title": "HARIO：V60 Ceramic Coffee Dripper",
+      "url": "https://www.hario-usa.com/products/v60-ceramic-coffee-dripper-01"
+    },
+    {
+      "id": "bh-macchiato",
+      "title": "Barista Hustle：Macchiato",
+      "url": "https://www.baristahustle.com/glossary/macchiato/"
+    }
+  ]
+}

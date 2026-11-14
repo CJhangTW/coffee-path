@@ -7,6 +7,13 @@
       "water-01",
       "water-02",
       "water-03"
+    ],
+    "milk": [
+      "milk-01",
+      "milk-02",
+      "milk-03",
+      "milk-04",
+      "milk-05"
     ]
   },
   "lessons": [
@@ -163,6 +170,81 @@
       "sourceIds": [
         "bh-lungo",
         "bh-americano"
+      ]
+    },
+    {
+      "id": "milk-01",
+      "chapterId": "milk",
+      "title": "一點奶泡，咖啡還是主角",
+      "eyebrow": "牛奶變奏 · 01",
+      "prompt": "在已萃取的 Espresso 上放一點奶泡，觀察杯中的變化。",
+      "action": "放上少量奶泡",
+      "question": "這個 Espresso Macchiato 示意的特色是什麼？",
+      "options": [
+        {
+          "id": "small",
+          "text": "Espresso 仍是主體，表面有少量奶泡"
+        },
+        {
+          "id": "lots",
+          "text": "整杯主要是大量牛奶"
+        }
+      ],
+      "challenge": {
+        "type": "action-and-choice",
+        "correctOptionIds": [
+          "small"
+        ]
+      },
+      "demonstration": {
+        "type": "foam",
+        "amountG": 8
+      },
+      "wrong": "這個示例只加一點奶泡，仍以 Espresso 為主。",
+      "summary": "Espresso Macchiato 常以少量牛奶或奶泡點綴濃縮；實際做法依店家而異。",
+      "rewardDrinkIds": [
+        "espresso-macchiato"
+      ],
+      "sourceIds": [
+        "bh-macchiato",
+        "pdg-milk"
+      ]
+    },
+    {
+      "id": "milk-02",
+      "chapterId": "milk",
+      "title": "當牛奶和 Espresso 更接近",
+      "eyebrow": "牛奶變奏 · 02",
+      "prompt": "在示例 Espresso 中加入與咖啡液重量接近的牛奶，觀察兩者的角色。",
+      "action": "加入示例牛奶",
+      "question": "與前一關相比，這個 Cortado 示意有什麼變化？",
+      "options": [
+        {
+          "id": "more",
+          "text": "牛奶的比例增加，與咖啡液重量接近"
+        },
+        {
+          "id": "water",
+          "text": "沒有牛奶，只是在咖啡裡加水"
+        }
+      ],
+      "challenge": {
+        "type": "action-and-choice",
+        "correctOptionIds": [
+          "more"
+        ]
+      },
+      "demonstration": {
+        "type": "milk",
+        "amountG": 36
+      },
+      "wrong": "這裡加入的是牛奶，不是水；示例重量和 Espresso 咖啡液接近。",
+      "summary": "Cortado 常用較少牛奶調和 Espresso；本例重量接近，但各地與店家配方不同。",
+      "rewardDrinkIds": [
+        "cortado"
+      ],
+      "sourceIds": [
+        "pdg-cortado"
       ]
     }
   ]

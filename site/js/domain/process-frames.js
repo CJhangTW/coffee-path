@@ -24,3 +24,9 @@ export function waterProcessMeaning(current,previous) {
     sequence:current===0?'已萃取的 Espresso（尚未加水）':'Espresso → 萃取後加水（Americano 製作方式示意）'
   };
 }
+
+/** A spoon marks foam; liquid milk is poured. Values are illustrative only. */
+export function milkFrame(kind,amount,progress) {
+  const p=Math.max(0,Math.min(1,progress));
+  return {amount:amount*p,spoon:kind==='foam'&&p>0&&p<1,spoonOffset:kind==='foam'?1-Math.abs(2*p-1):0,pouring:kind==='milk'&&p>0&&p<1,foam:kind==='foam'&&p>=.6};
+}

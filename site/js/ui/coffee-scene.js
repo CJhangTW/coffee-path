@@ -1,5 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import {extractionFrame,pourFrame,pourTransition} from '../domain/process-frames.js';
+import {extractionFrame,pourFrame,pourTransition,milkFrame} from '../domain/process-frames.js';
 
 /** Create a small procedural scene; never owns application or progress state. */
 export function createScene(host, options, onFailure) {
@@ -42,7 +42,7 @@ export function createScene(host, options, onFailure) {
     const dripper=mesh(new THREE.CylinderGeometry(.55,.15,.75,32),green,1.9,.85,-.65);dripper.position.y=1.05;
     marker=mesh(new THREE.TorusGeometry(.5,.045,10,40),mat(0xffe3a3),0,-.16,0);marker.rotation.x=Math.PI/2;marker.visible=false;
   } else {mainCup=makeCup(0,0,1.6);}
-  let waterFlow=null,coffeeFlow=null,pourFlow=null,pitcher=null;
+  let waterFlow=null,coffeeFlow=null,pourFlow=null,pitcher=null,spoon=null,foamMark=null;
   if(options.kind==='extract'){
     const metal=mat(0x918d80),puck=mat(0x69442f),blue=mat(0x99c5c1);
     mesh(new THREE.CylinderGeometry(.78,.72,.18,32),metal,0,2.56,0);
@@ -56,6 +56,11 @@ export function createScene(host, options, onFailure) {
     const blue=mat(0xa5c9c1),pitcherMaterial=mat(0xd6e7df);
     pitcher=mesh(new THREE.CylinderGeometry(.32,.27,.55,24),pitcherMaterial,1.2,2.0,0);pitcher.visible=false;
     pourFlow=mesh(new THREE.CylinderGeometry(.055,.055,1.05,12),blue,.68,1.63,0);pourFlow.rotation.z=-.68;pourFlow.visible=false;
+    spoon=new THREE.Group();spoon.position.set(.75,1.9,0);scene.add(spoon);spoon.visible=false;
+    const bowl=new THREE.Mesh(new THREE.SphereGeometry(.2,20,12),cream);bowl.scale.set(1,.22,.7);spoon.add(bowl);
+    const handle=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.65,12),cream);handle.rotation.z=-Math.PI/2;handle.position.x=.45;spoon.add(handle);
+    const scoop=new THREE.Mesh(new THREE.SphereGeometry(.13,16,12),milk);scoop.scale.set(1,.55,1);scoop.position.y=.07;spoon.add(scoop);
+    foamMark=new THREE.Mesh(new THREE.SphereGeometry(.22,20,12),milk.clone());foamMark.scale.set(1,.12,.75);foamMark.position.set(-.16,0,-.16);foamMark.visible=false;mainCup.group.add(foamMark);
   }
   mainCup.liquid.visible=!options.empty;
   let targetWater=Number(options.water)||0,currentWater=targetWater,raf=0,disposed=false,reduceByUser=options.reducedMotion===true,animation=null;
@@ -67,6 +72,12 @@ export function createScene(host, options, onFailure) {
     if(!animation)return;
     if(animation.type==='extract'){
       const state=extractionFrame(progress);waterFlow.visible=state.waterFlow;coffeeFlow.visible=state.coffeeFlow;mainCup.liquid.visible=state.filled>0;renderLiquid(state.filled*(animation.extended?0.95:0.55),0);
+    }else if(animation.type==='milk'){
+      const state=milkFrame(animation.kind,animation.amount,progress);pitcher.visible=state.pouring;pourFlow.visible=state.pouring;spoon.visible=state.spoon;
+      spoon.position.set(.75*(1-state.spoonOffset),1.9-.38*state.spoonOffset,0);
+      renderLiquid(.32+Math.min(state.amount/100,1)*.35,0);
+      if(animation.kind==='milk')mainCup.liquid.material.color.lerp(new THREE.Color(0xe6d1b1),Math.min(state.amount/100,1)*.7);
+      foamMark.visible=state.foam;foamMark.position.y=mainCup.liquid.position.y+.03;
     }else{
       const state=pourFrame(animation.from,animation.to,progress);currentWater=state.water;pourFlow.visible=state.pouring;pitcher.visible=state.pouring;renderLiquid(.32+Math.min(currentWater/250,1)*.65,currentWater);
     }
@@ -85,8 +96,13 @@ export function createScene(host, options, onFailure) {
     if(state.process==='extract'&&options.kind==='extract'){
       if(raf)cancelAnimationFrame(raf);raf=0;animation={type:'extract',extended:state.extended===true,started:null,duration:state.extended?3600:2400};
       if(reduceByUser||reduced.matches||state.instant){applyFrame(1);draw();}else {applyFrame(0);draw();raf=requestAnimationFrame(tick);}
+    }else if(state.process==='milk'&&options.kind==='cup'){
+      if(raf)cancelAnimationFrame(raf);raf=0;pitcher.material.color.set(0xf0e9da);pourFlow.material.color.set(0xfff8ed);foamMark.visible=false;
+      animation={type:'milk',kind:state.milkKind,amount:state.milkG,started:null,duration:1300};
+      if(reduceByUser||reduced.matches||state.instant){applyFrame(1);draw();}else {applyFrame(0);draw();raf=requestAnimationFrame(tick);}
     }else if(state.water!==undefined&&options.kind==='cup'){
       const next=Number(state.water)||0,transition=pourTransition(currentWater,targetWater,next);targetWater=next;if(raf)cancelAnimationFrame(raf);raf=0;
+      pitcher.material.color.set(0xd6e7df);pourFlow.material.color.set(0xa5c9c1);spoon.visible=false;foamMark.visible=false;
       animation={type:'pour',from:transition.from,to:transition.to,started:null,duration:1300};
       if(!transition.animate||reduceByUser||reduced.matches||state.instant){applyFrame(1);draw();}else {applyFrame(0);draw();raf=requestAnimationFrame(tick);}
     }else if(state.reducedMotion&&(animation)){if(raf)cancelAnimationFrame(raf);raf=0;applyFrame(1);draw();}

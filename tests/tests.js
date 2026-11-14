@@ -211,6 +211,39 @@ test('資料檢查拒絕不存在的正確答案', async () => {
   const {validateContent}=await import('../site/js/domain/content-validator.js');const [lessons,drinks,sources]=await Promise.all(['../site/data/lessons.json','../site/data/drinks.json','../site/data/sources.json'].map(async p=>(await fetch(p)).json()));
   lessons.lessons.find(item=>item.id==='water-03').challenge.correctOptionIds=['missing'];assert(!validateContent(lessons,drinks,sources),'不可使用沒有對應選項的答案');
 });
+test('牛奶示意分清奶泡與液態牛奶', async () => {
+  const {milkFrame}=await import('../site/js/domain/process-frames.js');
+  const foam=milkFrame('foam',8,.5),milk=milkFrame('milk',36,.5),done=milkFrame('milk',36,1);
+  assert(foam.spoon&&!foam.pouring,'奶泡示意應由湯匙放入，不是液態倒入');
+  assert(foam.spoonOffset===1&&milkFrame('foam',8,0).spoonOffset===0&&milkFrame('foam',8,1).spoonOffset===0,'奶泡匙應移向杯面再返回');
+  assert(milk.pouring&&!milk.spoon&&milk.amount===18,'牛奶示意應顯示液態倒入');
+  assert(!done.pouring&&done.amount===36,'完成後停止倒奶');
+});
+test('牛奶章必須操作才能通關且不提前給章節獎勵', async () => {
+  const {evaluateChallenge}=await import('../site/js/domain/lesson-engine.js');const {completeLesson,totalPoints}=await import('../site/js/domain/progression.js');
+  const lesson={id:'milk-01',chapterId:'milk',rewardDrinkIds:['espresso-macchiato'],challenge:{type:'action-and-choice',correctOptionIds:['small']}};
+  assert(!evaluateChallenge(lesson,{completed:false},'small').passed,'尚未操作不得通關');assert(evaluateChallenge(lesson,{completed:true},'small').passed,'操作並答對應通關');
+  const chapters={milk:['milk-01','milk-02','milk-03','milk-04','milk-05']};const start={completedLessonIds:[],awardedAchievementIds:[],collectedDrinkIds:[]};
+  const once=completeLesson(start,lesson,chapters).progress,twice=completeLesson(once,lesson,chapters).progress;
+  assert(totalPoints(twice)===10&&!twice.awardedAchievementIds.includes('chapter-milk'),'未完成整章或重玩不能額外給點');
+});
+test('牛奶課程觸發與文字一致的示範', async () => {
+  const {journey}=await import('../site/js/features/journey.js');const data=await (await fetch('../site/data/lessons.json')).json();
+  for(const [id,kind,amount] of [['milk-01','foam',8],['milk-02','milk',36]]){
+    const lesson=data.lessons.find(item=>item.id===id);assert(lesson,`${id} 應存在`);let completed=0,event;
+    const view=journey(lesson,{completedLessonIds:[]},()=>{completed++;return true;},[],data.lessons);document.body.append(view);
+    assert(view.textContent.includes('尚未加入牛奶或奶泡'),'牛奶課程初始狀態應說明尚未加奶');
+    view.querySelector('[data-scene]').addEventListener('coffee-scene-update',e=>{event=e.detail;});
+    view.querySelector('input[value="'+lesson.challenge.correctOptionIds[0]+'"]').click();view.querySelector('button.primary').click();assert(completed===0,'未操作不可通關');
+    view.querySelector('[data-demonstration]').click();assert(event.process==='milk'&&event.milkKind===kind&&event.milkG===amount,'動作必須與教材一致');
+    view.querySelector('button.primary').click();assert(completed===1,'完成操作並答對應通關');view.remove();
+  }
+});
+test('牛奶示範資料不得使用未知動作或非法重量', async () => {
+  const {validateContent}=await import('../site/js/domain/content-validator.js');const [lessons,drinks,sources]=await Promise.all(['../site/data/lessons.json','../site/data/drinks.json','../site/data/sources.json'].map(async p=>(await fetch(p)).json()));
+  const lesson=lessons.lessons.find(item=>item.id==='milk-01');lesson.demonstration.type='unknown';assert(!validateContent(lessons,drinks,sources),'未知示範類型應拒絕');
+  lesson.demonstration.type='foam';lesson.demonstration.amountG=-1;assert(!validateContent(lessons,drinks,sources),'負數應拒絕');
+});
 test('加水前不稱美式，減量明示配方調整', async () => {
   const {waterProcessMeaning}=await import('../site/js/domain/process-frames.js');
   assert(waterProcessMeaning(0,0).result==='espresso','未加水保持濃縮');
