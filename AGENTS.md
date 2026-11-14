@@ -13,7 +13,7 @@
 
 ## 首要指令
 1. 先讀 `README.md` 及 `docs/01`～`docs/08`，當文件與需求不同步時先列出衝突，**不要憑空追加產品功能**。
-2. 第一階段只做 M1：前 3 關、2D 咖啡杯、兩個入口、豆點／收藏／本機進度、基本實驗室。其餘依規格分期。
+2. 第一階段以 M1 為範圍：前 3 關、兩個入口、豆點／收藏／本機進度、基本實驗室；依使用者決定提前加入首頁探索桌面與關卡／Lab 的 3D 示意，並保留完整 2D 降級。其他內容依規格分期。
 3. 不使用 React、Vue、Svelte、TypeScript transpiler、Vite、Webpack、Node runtime server、後端 API、資料庫、Cloudflare Workers、Pages Functions、遠端 AI、CDN 或任何按請求付費服務。
 4. HTML/CSS/Vanilla ES Modules + 按需載入的 Three.js 是唯一技術棧。`site/` 是完整可部署的靜態根目錄，無 build。
 5. 不依賴任何圖片、影片、外部字型、音效或 3D 模型資產；以 HTML、CSS、SVG、程序化幾何製作視覺。
@@ -26,6 +26,7 @@
 
 ## 程式碼變更策略
 - 小步完成、可運行、可測試；避免一次性建立大批空白 placeholder 檔案。
+- 按階段開發；每階段完成並通過適當驗證、沒有阻礙交付的問題時，自行建立本機 Git commit 並回報；如有重大未解問題，先修復或說明，不要提交不完整階段。推送或部署仍須另獲授權。
 - 每次改動前閱讀所涉及模組；不得複製規則到 UI 或將全部程式塞在 `main.js`。
 - 新增資料／功能先依 `docs/03` 擴充 contract，再改 domain、UI、測試。
 - 保留穩定 ID 與本機進度相容性；如改 schema，提供 migration。

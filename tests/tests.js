@@ -87,6 +87,38 @@ test('未收藏卡片可閱讀但不冒稱已收藏', async () => {
   const view=collection({collectedDrinkIds:[]},drinks,[{id:'ref',title:'參考來源',url:'https://example.com'}]);
   assert(view.textContent.includes('義式濃縮'),'未收藏也可閱讀');assert(view.textContent.includes('尚未收藏'),'不能冒稱已收藏');assert(view.querySelector('a[href="https://example.com"]'),'來源必須可見');
 });
+test('3D 載入失敗時保留 2D 畫面', async () => {
+  const {createSceneController}=await import('../site/js/ui/scene-controller.js');
+  const host=document.createElement('div'); const fallback=document.createElement('span'); host.append(fallback);
+  const controller=createSceneController(host,fallback,async()=>{throw Error('blocked')});
+  await controller.enable();assert(!fallback.hidden,'失敗時 2D 必須可見');assert(!host.querySelector('canvas'),'失敗不能留下 canvas');controller.dispose();
+});
+test('離開頁面後遲到的 3D 載入不得掛載', async () => {
+  const {createSceneController}=await import('../site/js/ui/scene-controller.js');
+  let resolve; const pending=new Promise(r=>resolve=r);let disposed=0;const host=document.createElement('div');const fallback=document.createElement('span');host.append(fallback);
+  const controller=createSceneController(host,fallback,()=>pending);const enabled=controller.enable();controller.dispose();resolve({createScene:()=>({canvas:document.createElement('canvas'),dispose(){disposed++}})});await enabled;
+  assert(!host.querySelector('canvas'),'不可掛到已離開的畫面');assert(!fallback.hidden,'2D 保持可見');assert(disposed<=1,'不可重複釋放');
+});
+test('3D 載入期間操作會在載入後呈現，切回 2D 會清理', async () => {
+  const {createSceneController}=await import('../site/js/ui/scene-controller.js');let resolve;const pending=new Promise(r=>resolve=r);let state,disposals=0;const host=document.createElement('div');const fallback=document.createElement('span');host.append(fallback);
+  const controller=createSceneController(host,fallback,()=>pending);const enabled=controller.enable();controller.update({water:120});resolve({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(value){state=value;},dispose(){disposals++;}})});await enabled;
+  assert(state.water===120,'載入期間變更不可遺失');assert(fallback.hidden,'3D 成功時隱藏 2D');controller.disable();assert(!fallback.hidden&&!host.querySelector('canvas'),'切回 2D 必須移除 3D');controller.dispose();assert(disposals===1,'僅釋放一次');
+});
+test('已啟用 3D 的更新失敗會安全降回 2D', async () => {
+  const {createSceneController}=await import('../site/js/ui/scene-controller.js');let disposed=0;const host=document.createElement('div');const fallback=document.createElement('span');host.append(fallback);
+  const controller=createSceneController(host,fallback,async()=>({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(){throw Error('GPU error')},dispose(){disposed++;}})}));
+  await controller.enable();controller.update({water:100});assert(!fallback.hidden&&!host.querySelector('canvas'),'出錯後必須恢復 2D');assert(disposed===1,'出錯後釋放場景');
+});
+test('選擇 2D 後換頁仍保留 2D', async () => {
+  const {mountScenes}=await import('../site/js/ui/mount-scenes.js');let preference='auto';
+  const createRoot=()=>{const root=document.createElement('div');root.innerHTML='<div data-scene="cup"><div class="scene-fallback"></div></div>';document.body.append(root);return root;};
+  const loader=async()=>({createScene:()=>({canvas:document.createElement('canvas'),render(){},update(){},dispose(){}})});
+  const schedule=fn=>{fn();return 0;};
+  const root=createRoot();let stop=mountScenes(root,{visualMode:preference,onPreference:v=>{preference=v;},loader,schedule});
+  await new Promise(resolve=>setTimeout(resolve,0));root.querySelector('button').click();assert(preference==='2d','切換應保存偏好');stop();root.remove();
+  const next=createRoot();stop=mountScenes(next,{visualMode:preference,onPreference:v=>{preference=v;},loader,schedule});await new Promise(resolve=>setTimeout(resolve,0));
+  assert(!next.querySelector('canvas'),'換頁後不應自動啟用 3D');stop();next.remove();
+});
 
 let failures=0; const lines=[];
 for (const {name,fn} of tests) { try {await fn(); lines.push(`PASS ${name}`);} catch(e) {failures++; lines.push(`FAIL ${name}: ${e.message}`);} }

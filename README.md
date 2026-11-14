@@ -47,7 +47,9 @@
 
 ## 目前交付內容
 
-目前 `site/` 包含 M1 前三關、基本 Lab、2D 示意與本機進度；`tests/` 為瀏覽器測試。六張核心咖啡卡均可閱讀，完成關卡可收藏 Espresso 和 Americano；教材已附參考來源，仍標記為待審核。本機實作不表示已建立 GitHub 儲存庫、Cloudflare Pages 專案或變更 DNS。
+目前 `site/` 包含 M1 前三關、基本 Lab、3D 探索桌面與杯子、2D 降級及本機進度；`tests/` 為瀏覽器測試。六張核心咖啡卡均可閱讀，完成關卡可收藏 Espresso 和 Americano；教材已附參考來源，仍標記為待審核。本機實作不表示已建立 GitHub 遠端儲存庫、Cloudflare Pages 專案或變更 DNS。
+
+首頁先顯示網頁與 2D 示意，再以動態載入啟用 3D；關卡及 Lab 也可手動切換 2D。Three.js 使用自行託管的官方 r170（0.170.0），檔案與 MIT 授權位於 `site/vendor/three/`，來源為 [Three.js 官方 r170](https://github.com/mrdoob/three.js/tree/r170)。這是依擁有者決定提前至 M1 的視覺原型，詳見 `docs/06` 與 `docs/superpowers/specs/2026-11-14-3d-coffee-world-design.md`。
 
 ## 本機執行與測試
 
