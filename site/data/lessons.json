@@ -11,6 +11,7 @@
     "milk": [
       "milk-01",
       "milk-02",
+      "milk-06",
       "milk-03",
       "milk-04",
       "milk-05"
@@ -24,28 +25,27 @@
       "eyebrow": "序章 · 01",
       "prompt": "咖啡豆、水和牛奶，可以組合出不同的咖啡。先點選三種原料，看看它們帶來的可能。",
       "action": "確認三種原料",
-      "question": "下面哪一個是器具，而不是咖啡飲品？",
+      "question": "這趟旅程會從哪些原料出發，探索不同咖啡？",
       "options": [
         {
-          "id": "v60",
-          "text": "V60 濾杯"
+          "id": "ingredients",
+          "text": "咖啡豆、水與牛奶"
         },
         {
-          "id": "latte",
-          "text": "Latte 拿鐵"
+          "id": "water-only",
+          "text": "只有水，沒有咖啡豆"
         }
       ],
       "challenge": {
         "type": "action-and-choice",
         "correctOptionIds": [
-          "v60"
+          "ingredients"
         ]
       },
-      "wrong": "V60 是沖煮器具；Latte 則是一種咖啡飲品。",
+      "wrong": "這趟旅程從咖啡豆、水與牛奶出發，認識不同咖啡的關係。",
       "summary": "從豆、水、奶開始，我們可以用不同做法探索咖啡。",
       "rewardDrinkIds": [],
       "sourceIds": [
-        "hario-v60",
         "pdg-milk"
       ]
     },
@@ -88,15 +88,15 @@
       "title": "加水之後，是不是另一杯咖啡？",
       "eyebrow": "水的魔法 · 02",
       "prompt": "Espresso 已經萃取完成。試著在杯中加入至少 80 g 水。",
-      "question": "Americano 與 Lungo 的主要製作差別是什麼？",
+      "question": "Espresso 和 Americano 的主要製作差別是什麼？",
       "options": [
         {
           "id": "after",
-          "text": "Americano 在萃取後再加水"
+          "text": "Americano 在 Espresso 萃取完成後再加水"
         },
         {
           "id": "same",
-          "text": "只是杯子大小不同"
+          "text": "Espresso 也要在萃取後加入水"
         }
       ],
       "challenge": {
@@ -107,7 +107,7 @@
           "after"
         ]
       },
-      "wrong": "美式的水是在萃取後加入；Lungo 則是讓水繼續通過咖啡粉床。",
+      "wrong": "Espresso 是萃取出的咖啡液；Americano 則是在萃取完成後把水加入杯中。",
       "summary": "美式咖啡先萃取 Espresso，再加水稀釋；水量會依店家與喜好不同。",
       "rewardDrinkIds": [
         "americano"
@@ -116,6 +116,62 @@
         "bh-americano",
         "bh-lungo"
       ]
+    },
+    {
+      "id": "milk-06",
+      "chapterId": "milk",
+      "title": "牛奶加入後，咖啡成了 Latte",
+      "eyebrow": "牛奶變奏 · 入門",
+      "prompt": "先有約 36 g Espresso，再加入 180 g 牛奶，觀察拿鐵的基本構成。此入門示意先聚焦牛奶；拿鐵也可能有細奶泡。",
+      "action": "加入示例牛奶",
+      "question": "這杯示意 Latte 和 Espresso 相比，多了什麼？",
+      "options": [
+        {
+          "id": "milk",
+          "text": "萃取完成後加入較多液態牛奶"
+        },
+        {
+          "id": "water",
+          "text": "在 Espresso 萃取完成後加入水"
+        }
+      ],
+      "challenge": {
+        "type": "action-and-choice",
+        "correctOptionIds": [
+          "milk"
+        ]
+      },
+      "demonstration": {
+        "type": "milk",
+        "amountG": 180
+      },
+      "wrong": "這個示例是在 Espresso 萃取完成後加入液態牛奶；加水則是另一種調配方式。",
+      "summary": "本關以約 36 g Espresso 加 180 g 牛奶示範 Latte；此為示例，拿鐵也可能有細奶泡，做法與比例依店家而異。",
+      "rewardDrinkIds": [
+        "latte"
+      ],
+      "sourceIds": [
+        "pdg-milk",
+        "bh-latte"
+      ]
+    },
+    {
+      "id": "milk-04",
+      "chapterId": "milk",
+      "title": "卡布奇諾的奶泡有什麼不同？",
+      "eyebrow": "牛奶變奏 · 比較",
+      "prompt": "延續拿鐵的牛奶咖啡概念，拆解觀察卡布奇諾示例中的牛奶與奶泡。",
+      "question": "比較這兩杯教學示例，可以注意什麼？",
+      "options": [
+        {"id": "foam", "text": "兩者都有牛奶；卡布奇諾示例呈現較明顯的奶泡"},
+        {"id": "none", "text": "拿鐵完全沒有奶泡，卡布奇諾也沒有牛奶"}
+      ],
+      "challenge": {"type": "action-and-choice", "correctOptionIds": ["foam"]},
+      "demonstration": {"type": "cappuccino", "milkG": 90, "foamG": 20},
+      "wrong": "兩種飲品都以 Espresso 和牛奶製作，也都可能有奶泡；本示例著重比較奶泡的表現。",
+      "summary": "這是較明顯奶泡的卡布奇諾示例；拿鐵也可能有細奶泡，各地及店家做法不同。",
+      "rewardDrinkIds": ["cappuccino"],
+      "sourceIds": ["pdg-milk", "bh-cappuccino"]
     },
     {
       "id": "water-03",

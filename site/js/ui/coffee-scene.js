@@ -1,5 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import {extractionFrame,pourFrame,pourTransition,milkFrame} from '../domain/process-frames.js';
+import {extractionFrame,pourFrame,pourTransition,milkFrame,cappuccinoFrame} from '../domain/process-frames.js';
 
 /** Create a small procedural scene; never owns application or progress state. */
 export function createScene(host, options, onFailure) {
@@ -68,10 +68,21 @@ export function createScene(host, options, onFailure) {
   function resize(){if(disposed)return;const width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);renderer.setSize(width,height,false);const aspect=width/height;const view=Math.max(options.kind==='world'?3.4:options.kind==='extract'?3.3:2.6,(tableRadius+0.4)/aspect);camera.left=-view*aspect;camera.right=view*aspect;camera.top=view;camera.bottom=-view;camera.updateProjectionMatrix();draw();}
   function draw(){if(!disposed){try{renderer.render(scene,camera);}catch{onFailure();}}}
   function renderLiquid(level,waterAmount){const fraction=Math.max(.05,Math.min(1,level));mainCup.liquid.position.y=.15+fraction*.68;const radius=(.42+fraction*.18)/.565;mainCup.liquid.scale.set(radius,1,radius);mainCup.liquid.material.color.set(0x63402d).lerp(new THREE.Color(0xb48b68),Math.min(waterAmount/250,1)*.45);}
+  function applyCappuccino(step,progress,milkG,foamG){
+    const state=cappuccinoFrame(step,progress,milkG,foamG),milkRatio=Math.min(state.milkG/160,1);
+    mainCup.liquid.visible=true;renderLiquid(state.cupLevel,0);
+    mainCup.liquid.material.color.set(0x63402d).lerp(new THREE.Color(0xe6d1b1),milkRatio*.65);
+    pitcher.visible=state.milkPouring;pourFlow.visible=state.milkPouring;spoon.visible=state.spoon;
+    spoon.position.set(.75*(1-state.spoonOffset),1.9-.38*state.spoonOffset,0);
+    foamMark.visible=state.foamG>0;foamMark.position.y=mainCup.liquid.position.y+.04;
+    foamMark.scale.set(1,.12+Math.min(state.foamG/80,1)*.12,.75);
+  }
   function applyFrame(progress){
     if(!animation)return;
     if(animation.type==='extract'){
       const state=extractionFrame(progress);waterFlow.visible=state.waterFlow;coffeeFlow.visible=state.coffeeFlow;mainCup.liquid.visible=state.filled>0;renderLiquid(state.filled*(animation.extended?0.95:0.55),0);
+    }else if(animation.type==='cappuccino'){
+      applyCappuccino(animation.step,progress,animation.milkG,animation.foamG);
     }else if(animation.type==='milk'){
       const state=milkFrame(animation.kind,animation.amount,progress);pitcher.visible=state.pouring;pourFlow.visible=state.pouring;spoon.visible=state.spoon;
       spoon.position.set(.75*(1-state.spoonOffset),1.9-.38*state.spoonOffset,0);
@@ -96,6 +107,11 @@ export function createScene(host, options, onFailure) {
     if(state.process==='extract'&&options.kind==='extract'){
       if(raf)cancelAnimationFrame(raf);raf=0;animation={type:'extract',extended:state.extended===true,started:null,duration:state.extended?3600:2400};
       if(reduceByUser||reduced.matches||state.instant){applyFrame(1);draw();}else {applyFrame(0);draw();raf=requestAnimationFrame(tick);}
+    }else if(state.process==='cappuccino'&&options.kind==='cup'){
+      if(raf)cancelAnimationFrame(raf);raf=0;
+      pitcher.material.color.set(state.step==='milk'?0xf0e9da:0xd6e7df);pourFlow.material.color.set(0xfff8ed);foamMark.visible=false;
+      animation={type:'cappuccino',step:state.step||'espresso',milkG:state.milkG||0,foamG:state.foamG||0,started:null,duration:1300};
+      if(state.step==='espresso'||reduceByUser||reduced.matches||state.instant){applyFrame(1);draw();}else {applyFrame(0);draw();raf=requestAnimationFrame(tick);}
     }else if(state.process==='milk'&&options.kind==='cup'){
       if(raf)cancelAnimationFrame(raf);raf=0;pitcher.material.color.set(0xf0e9da);pourFlow.material.color.set(0xfff8ed);foamMark.visible=false;
       animation={type:'milk',kind:state.milkKind,amount:state.milkG,started:null,duration:1300};

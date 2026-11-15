@@ -34,6 +34,16 @@
       "id": "bh-macchiato",
       "title": "Barista Hustle：Macchiato",
       "url": "https://www.baristahustle.com/glossary/macchiato/"
+    },
+    {
+      "id": "bh-latte",
+      "title": "Barista Hustle：Latte",
+      "url": "https://www.baristahustle.com/glossary/latte-caffe-latte/"
+    },
+    {
+      "id": "bh-cappuccino",
+      "title": "Barista Hustle：Cappuccino",
+      "url": "https://www.baristahustle.com/glossary/cappuccino/"
     }
   ]
 }

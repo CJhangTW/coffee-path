@@ -47,7 +47,7 @@
 
 ## 目前交付內容
 
-目前 `site/` 包含序章、水章與牛奶章前兩關共六關、基本 Lab、3D 探索桌面與杯子、2D 降級及本機進度；`tests/` 為瀏覽器測試。七張核心咖啡卡均可閱讀；教材已附參考來源，仍標記為待審核。本機實作不表示已建立 GitHub 遠端儲存庫、Cloudflare Pages 專案或變更 DNS。
+目前 `site/` 提供序章、水章三關、牛奶章四關共八個可用關卡，以及基本 Lab、3D 探索桌面與杯子、2D 降級及本機進度；`tests/` 為瀏覽器測試。主線先學 Latte 加奶，再以 Cappuccino 示意比較奶泡，後續才進入長萃等延伸概念；配方數字皆為示例。牛奶章 `milk-03`、`milk-05` 尚未實作，完成現有關卡不會提前取得整章獎勵；既有關卡 ID、完成記錄與收藏維持原意。七張核心咖啡卡均可閱讀；教材已附參考來源，仍標記為待審核。本機實作不表示已建立 GitHub 遠端儲存庫、Cloudflare Pages 專案或變更 DNS。
 
 首頁以「原料 → 萃取與調配 → 飲品與名稱」說明咖啡世界，並區分已開放及規劃中的路徑。頁面先顯示網頁與 2D 示意，再以動態載入啟用 3D。頁首「顯示設定」可全站切換 3D／2D，並可獨立減少動態；既有偏好會保留在本機。Three.js 使用自行託管的官方 r170（0.170.0），檔案與 MIT 授權位於 `site/vendor/three/`，來源為 [Three.js 官方 r170](https://github.com/mrdoob/three.js/tree/r170)。這是依擁有者決定提前至 M1 的視覺原型，詳見 `docs/06` 與 `docs/superpowers/specs/2026-11-14-3d-coffee-world-design.md`。
 
@@ -64,6 +64,8 @@ python -m http.server 8000
 ```
 
 開啟 `http://localhost:8000/site/`；測試頁為 `http://localhost:8000/tests/`。請使用 HTTP 伺服器，不要直接以 `file://` 開啟。瀏覽器進度儲存在該來源的 localStorage；若儲存遭拒，頁面仍可使用，但關閉後進度可能遺失。
+
+卡布奇諾兩步示意與顯示切換測試另見 `http://localhost:8000/tests/cappuccino.html`。
 
 ## 後續部署與內容維護
 

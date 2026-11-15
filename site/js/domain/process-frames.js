@@ -30,3 +30,21 @@ export function milkFrame(kind,amount,progress) {
   const p=Math.max(0,Math.min(1,progress));
   return {amount:amount*p,spoon:kind==='foam'&&p>0&&p<1,spoonOffset:kind==='foam'?1-Math.abs(2*p-1):0,pouring:kind==='milk'&&p>0&&p<1,foam:kind==='foam'&&p>=.6};
 }
+
+/** Model the teaching sequence without treating it as a universal recipe. */
+export function cappuccinoFrame(step,progress,milkG,foamG) {
+  const p=Math.max(0,Math.min(1,progress));
+  const liquidMilk=step==='milk'?milkG*p:step==='foam'?milkG:0;
+  const foam=step==='foam'?foamG*p:0;
+  const milkRatio=Math.min(liquidMilk/160,1);
+  const foamRatio=Math.min(foam/80,1);
+  return {
+    milkG:liquidMilk,
+    foamG:foam,
+    milkPouring:step==='milk'&&p>0&&p<1,
+    spoon:step==='foam'&&p>0&&p<1,
+    spoonOffset:step==='foam'?1-Math.abs(2*p-1):0,
+    milkLevel:.32+milkRatio*.35,
+    cupLevel:.32+milkRatio*.35+foamRatio*.08,
+  };
+}

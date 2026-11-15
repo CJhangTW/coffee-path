@@ -7,7 +7,7 @@ export function validateContent(content, drinks, sources) {
   for(const l of content.lessons) {
     if(!l.id||ids.has(l.id)||!content.chapters[l.chapterId]?.includes(l.id)||!l.challenge?.correctOptionIds?.length||!Array.isArray(l.rewardDrinkIds)||l.rewardDrinkIds.some(id=>!drinkIds.has(id))||!Array.isArray(l.sourceIds)||l.sourceIds.some(id=>!sourceIds.has(id))) return false;
     if(!Array.isArray(l.options)||l.options.length<2||l.options.some(option=>!option.id||!option.text)||new Set(l.options.map(option=>option.id)).size!==l.options.length||l.challenge.correctOptionIds.some(id=>!l.options.some(option=>option.id===id)))return false;
-    if(l.demonstration&&(!['milk','foam'].includes(l.demonstration.type)||!Number.isFinite(l.demonstration.amountG)||l.demonstration.amountG<=0||l.demonstration.amountG>300||l.challenge.type!=='action-and-choice'))return false;
+    if(l.demonstration){const d=l.demonstration;const validAmount=n=>Number.isFinite(n)&&n>0&&n<=300;if(l.challenge.type!=='action-and-choice'||(d.type==='cappuccino'?(!validAmount(d.milkG)||!validAmount(d.foamG)):(!['milk','foam'].includes(d.type)||!validAmount(d.amountG))))return false;}
     if(l.challenge.type==='observe-and-choice'){
       if(!Array.isArray(l.observations)||!Array.isArray(l.challenge.requiredActionIds)||!l.challenge.requiredActionIds.length)return false;
       const actionIds=new Set(l.observations.map(item=>item.id));

@@ -24,6 +24,6 @@ export function lab(){
   }
   number.addEventListener('input',()=>update(number));range.addEventListener('input',()=>update(range));
   const reset=el('button',{class:'plain',type:'button',onClick:()=>{number.value='0';update(number);}},'重設');
-  return el('div',{},el('div',{class:'page-top'},el('span',{class:'step'},'FREE LAB · 基本示範'),el('h1',{},'讓好奇心，自由調配。'),el('p',{},'調整 Espresso 萃取後加入的水量，觀察構成如何改變。')),
+  return el('div',{},el('div',{class:'page-top'},el('span',{class:'step'},'FREE LAB · 基本示範'),el('h1',{},'探索濃縮咖啡與加水。'),el('p',{},'目前可調整 Espresso 萃取後加入的水量；牛奶與奶泡的自由調配仍在規劃中。')),
     el('div',{class:'workspace'},visual,el('section',{class:'panel'},el('p',{class:'step'},'ESPRESSO + WATER'),el('h2',{},'你的咖啡配方'),el('p',{},'示例基底：18 g 咖啡粉，萃出約 36 g Espresso。'),el('div',{class:'control'},el('label',{for:'lab-water'},'萃取後加水（g）'),number,range,el('p',{id:'lab-help',class:'muted'},'可調整 0–250 g。')),el('div',{'aria-live':'polite'},result),reset,el('div',{class:'actions'},link('前往探索旅程','#/journey/intro-01')))));
 }

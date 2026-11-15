@@ -144,7 +144,7 @@ test('序章選擇與取消原料同步場景且不繞過通關', async () => {
   let completed=0;const view=journey(content.lessons[0],{completedLessonIds:[]},()=>{completed++;return true;});document.body.append(view);
   const frame=view.querySelector('[data-scene="world"]');let selected='unseen';frame.addEventListener('coffee-scene-update',event=>{selected=event.detail.ingredient;});
   const boxes=view.querySelectorAll('.ingredient-list input');boxes[0].click();assert(selected==='beans',`選豆應指出咖啡豆（目前 ${selected}）`);boxes[1].click();assert(selected==='water','選水應指出水');boxes[1].click();assert(selected==='beans','取消水後回到已選的豆');boxes[0].click();assert(selected===null,'全部取消應清除標記');
-  boxes[0].click();boxes[1].click();view.querySelector('input[value="v60"]').click();view.querySelector('button.primary').click();assert(completed===0,'少選原料不得通關');boxes[2].click();view.querySelector('button.primary').click();assert(completed===1,'選擇三種原料且答對才完成');view.remove();
+  boxes[0].click();boxes[1].click();view.querySelector('input[value="ingredients"]').click();view.querySelector('button.primary').click();assert(completed===0,'少選原料不得通關');boxes[2].click();view.querySelector('button.primary').click();assert(completed===1,'選擇三種原料且答對才完成');view.remove();
 });
 test('萃取示意依序顯示水經粉床與咖啡流入杯中', async () => {
   const {extractionFrame}=await import('../site/js/domain/process-frames.js');
@@ -205,7 +205,14 @@ test('對照關卡需有可解析且不重複的觀察動作', async () => {
 test('水章第二關的下一步由資料順序接至第三關', async () => {
   const {journey}=await import('../site/js/features/journey.js');const data=await (await fetch('../site/data/lessons.json')).json();
   const view=journey(data.lessons.find(item=>item.id==='water-02'),{completedLessonIds:[]},()=>true,[],data.lessons);
-  assert(view.querySelector('a[href="#/journey/water-03"]'),'跳過或下一步應能前往水章第三關');
+  assert(view.querySelector('a[href="#/journey/milk-06"]'),'跳過或下一步應先前往 Latte 入門');
+});
+test('water-02 只檢查已教過的濃縮與萃取後加水，Lungo 留待 water-03', async () => {
+  const data=await (await fetch('../site/data/lessons.json')).json();
+  const lesson=data.lessons.find(item=>item.id==='water-02');
+  assert(lesson.question.includes('Espresso')&&lesson.question.includes('Americano'),'water-02 應在已學的濃縮與萃取後加水間比較');
+  assert(!JSON.stringify([lesson.question,lesson.options,lesson.wrong,lesson.summary]).includes('Lungo'),'water-02 不應要求辨識尚未教過的 Lungo');
+  assert(JSON.stringify(data.lessons.find(item=>item.id==='water-03').options).includes('Lungo'),'Lungo 對照應留在專門的 water-03');
 });
 test('資料檢查拒絕不存在的正確答案', async () => {
   const {validateContent}=await import('../site/js/domain/content-validator.js');const [lessons,drinks,sources]=await Promise.all(['../site/data/lessons.json','../site/data/drinks.json','../site/data/sources.json'].map(async p=>(await fetch(p)).json()));
@@ -244,6 +251,49 @@ test('牛奶示範資料不得使用未知動作或非法重量', async () => {
   const lesson=lessons.lessons.find(item=>item.id==='milk-01');lesson.demonstration.type='unknown';assert(!validateContent(lessons,drinks,sources),'未知示範類型應拒絕');
   lesson.demonstration.type='foam';lesson.demonstration.amountG=-1;assert(!validateContent(lessons,drinks,sources),'負數應拒絕');
 });
+test('Latte 入門位於水章第二關後且保留牛奶示範與獎勵規則', async () => {
+  const data=await (await fetch('../site/data/lessons.json')).json();
+  const ids=data.lessons.map(lesson=>lesson.id);
+  const lesson=data.lessons.find(item=>item.id==='milk-06');
+  assert(ids.indexOf('water-02')<ids.indexOf('milk-06')&&ids.indexOf('milk-06')<ids.indexOf('water-03'),'Latte 入門應接在 water-02 後、water-03 前');
+  assert(data.chapters.milk.includes('milk-06'),'牛奶章應包含 milk-06');
+  assert(lesson&&lesson.chapterId==='milk'&&lesson.demonstration.type==='milk'&&lesson.demonstration.amountG===180,'新關卡應用既有液態牛奶示範加入 180 g');
+  assert(lesson.rewardDrinkIds.includes('latte')&&lesson.sourceIds.includes('pdg-milk'),'新關卡應收藏 Latte 並引用既有牛奶來源');
+  assert(lesson.summary.includes('36 g')&&lesson.summary.includes('180 g')&&/示例|非全球|非唯一/.test(lesson.summary),'教材應呈現 36 g Espresso + 180 g 牛奶且明示只是示例');
+  const existingIds=['milk-01','milk-02'];
+  const chapterIds=['milk-01','milk-02','milk-03','milk-04','milk-05'];
+  assert(existingIds.every(id=>ids.includes(id))&&chapterIds.every(id=>data.chapters.milk.includes(id)),'既有關卡 ID 及預留的牛奶章 ID 都應保留原意');
+});
+test('既有牛奶進度保留，新增 Latte 關卡完成前不提早領章節獎', async () => {
+  const {completeLesson,totalPoints}=await import('../site/js/domain/progression.js');
+  const data=await (await fetch('../site/data/lessons.json')).json();
+  const oldIds=['milk-01','milk-02'];
+  const previous={completedLessonIds:oldIds,awardedAchievementIds:[],collectedDrinkIds:['espresso-macchiato','cortado']};
+  const before=completeLesson(previous,{id:'milk-01',chapterId:'milk',rewardDrinkIds:['espresso-macchiato']},data.chapters).progress;
+  assert(oldIds.every(id=>before.completedLessonIds.includes(id)),'讀取與重玩舊關卡不得移除舊完成紀錄');
+  assert(!before.awardedAchievementIds.includes('chapter-milk')&&totalPoints(before)===20,'保留舊有兩關完成時，不應誤領完整牛奶章獎勵');
+  const lesson=data.lessons.find(item=>item.id==='milk-06');
+  const once=completeLesson(before,lesson,data.chapters).progress;
+  const twice=completeLesson(once,lesson,data.chapters).progress;
+  assert(!once.awardedAchievementIds.includes('chapter-milk')&&totalPoints(once)===30,'milk-06 不能讓尚未完成 milk-03 至 milk-05 的牛奶章提早結算');
+  assert(totalPoints(twice)===30&&twice.collectedDrinkIds.filter(id=>id==='latte').length===1,'重玩不得重複領豆點或 Latte 卡');
+  let complete=once;
+  for(const id of ['milk-03','milk-04','milk-05']) complete=completeLesson(complete,{id,chapterId:'milk',rewardDrinkIds:[]},data.chapters).progress;
+  assert(complete.awardedAchievementIds.includes('chapter-milk')&&totalPoints(complete)===80,'完成其餘牛奶關卡後才取得 20 BP 章節獎勵');
+});
+test('一般萃取動畫結束後 2D 杯中仍有咖啡液', async () => {
+  const {extractionDiagram}=await import('../site/js/ui/dom.js');
+  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='../site/css/style.css';
+  const loaded=new Promise((resolve,reject)=>{stylesheet.addEventListener('load',resolve,{once:true});stylesheet.addEventListener('error',()=>reject(new Error('無法載入網站樣式表')),{once:true});});
+  document.head.append(stylesheet);
+  await loaded;
+  const diagram=extractionDiagram(true);document.body.append(diagram);
+  await new Promise(resolve=>setTimeout(resolve,2450));
+  const liquid=diagram.querySelector('.diagram-liquid');
+  assert(!diagram.classList.contains('is-extracting')&&diagram.classList.contains('is-complete'),'一般萃取動畫應在 2400 ms 後完成');
+  assert(parseFloat(getComputedStyle(liquid).height)>0,'動畫完成後杯中液面 computed height 應大於 0');
+  diagram.remove();stylesheet.remove();
+});
 test('加水前不稱美式，減量明示配方調整', async () => {
   const {waterProcessMeaning}=await import('../site/js/domain/process-frames.js');
   assert(waterProcessMeaning(0,0).result==='espresso','未加水保持濃縮');
@@ -279,6 +329,19 @@ test('首頁展示原料、製程與飲品的關係及尚未開放的路徑', as
   assert(page.textContent.includes('萃取')&&page.textContent.includes('飲品'),'應解釋原料與飲品的關係');
   assert(page.textContent.includes('手沖')&&page.textContent.includes('冷萃')&&page.textContent.includes('規劃中'),'應標明未開放路徑');
   assert(page.querySelector('a[href="#/journey/intro-01"]')&&page.querySelector('a[href="#/lab"]'),'兩個入口仍可使用');
+});
+
+test('拿鐵後接卡布奇諾，必須完成兩步才通關', async () => {
+  const {journey}=await import('../site/js/features/journey.js');
+  const data=await (await fetch('../site/data/lessons.json')).json();
+  const ids=data.lessons.map(l=>l.id),lesson=data.lessons.find(l=>l.id==='milk-04');
+  assert(ids.indexOf('milk-04')===ids.indexOf('milk-06')+1,'卡布奇諾應接在拿鐵後');
+  let count=0;const wasReduced=document.body.classList.contains('reduce-motion');document.body.classList.add('reduce-motion');
+  const view=journey(lesson,{completedLessonIds:[]},()=>{count++;return true;},[],data.lessons);document.body.append(view);
+  view.querySelector('input[value="foam"]').click();view.querySelector('button.primary').click();assert(count===0,'未操作不可通關');
+  view.querySelector('[data-cappuccino-step="milk"]').click();view.querySelector('button.primary').click();assert(count===0,'只加牛奶不可通關');
+  view.querySelector('[data-cappuccino-step="foam"]').click();view.querySelector('button.primary').click();assert(count===1,'完成兩步且答對後通關');
+  view.remove();if(!wasReduced)document.body.classList.remove('reduce-motion');
 });
 
 let failures=0; const lines=[];
